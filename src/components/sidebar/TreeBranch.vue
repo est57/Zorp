@@ -31,6 +31,7 @@ const folderMenu = (id: string, name: string): MenuItem[] => [
 const requestMenu = (item: SavedRequest): MenuItem[] => [
   { label: "Buka", icon: "send", run: () => tabs.openSaved(item) },
   { label: "Duplikat", icon: "copy", run: () => actions.duplicate(item) },
+  { label: "Salin sebagai cURL", icon: "code", run: () => actions.copyCurl(item) },
   {
     label: "Ganti nama",
     icon: "pencil",

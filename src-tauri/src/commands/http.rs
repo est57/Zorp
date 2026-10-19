@@ -15,17 +15,20 @@ const PROGRESS_EVENT: &str = "request://progress";
 fn effective_auth(state: &AppState, spec: &RequestSpec) -> AppResult<(Auth, Variables)> {
     let conn = state.db()?;
     let env = db::environments::active_values(&conn, state.workspace_id, state.secrets.as_ref())?;
-    let auth = match &spec.auth {
-        Auth::Inherit => match db::requests::location(&conn, spec.id)? {
-            Some((collection_id, folder_id)) => {
-                db::collections::inherited_auth(&conn, collection_id, folder_id)?
-                    .unwrap_or(Auth::None)
-            }
-            None => Auth::None,
-        },
-        other => other.clone(),
+    let location = db::requests::location(&conn, spec.id)?;
+    let collection_vars = match location {
+        Some((collection_id, _)) => db::collections::variables(&conn, collection_id)?,
+        None => Vec::new(),
     };
-    Ok((auth, Variables::from_layers(vec![env])))
+    let auth = match (&spec.auth, location) {
+        (Auth::Inherit, Some((collection_id, folder_id))) => {
+            db::collections::inherited_auth(&conn, collection_id, folder_id)?.unwrap_or(Auth::None)
+        }
+        (Auth::Inherit, None) => Auth::None,
+        (other, _) => other.clone(),
+    };
+    // Environment values override collection values, matching Postman precedence.
+    Ok((auth, Variables::from_layers(vec![collection_vars, env])))
 }
 
 fn record(state: &AppState, spec: &RequestSpec, result: &AppResult<ResponseData>) -> AppResult<()> {

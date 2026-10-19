@@ -4,6 +4,7 @@ import RequestEditor from "@/components/request/RequestEditor.vue";
 import UrlBar from "@/components/request/UrlBar.vue";
 import ResponsePanel from "@/components/response/ResponsePanel.vue";
 import { useRequestActions } from "@/composables/useRequestActions";
+import { useDialogsStore } from "@/stores/dialogs";
 import { useRunnerStore } from "@/stores/runner";
 import { useTabsStore } from "@/stores/tabs";
 import EmptyWorkspace from "./EmptyWorkspace.vue";
@@ -12,6 +13,7 @@ import SplitPane from "./SplitPane.vue";
 const tabs = useTabsStore();
 const runner = useRunnerStore();
 const actions = useRequestActions();
+const dialogs = useDialogsStore();
 const urlBar = ref<InstanceType<typeof UrlBar>>();
 
 defineExpose({ focusUrl: () => urlBar.value?.focus() });
@@ -27,6 +29,7 @@ defineExpose({ focusUrl: () => urlBar.value?.focus() });
       @send="actions.send(tabs.active)"
       @cancel="actions.cancel(tabs.active)"
       @save="actions.save(tabs.active)"
+      @code="dialogs.snippetTabId = tabs.active.id"
     />
     <div class="border-t border-line" />
     <SplitPane>

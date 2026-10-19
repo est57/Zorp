@@ -5,6 +5,7 @@ import IconButton from "@/components/ui/IconButton.vue";
 import CollectionTree from "@/components/sidebar/CollectionTree.vue";
 import EnvironmentList from "@/components/sidebar/EnvironmentList.vue";
 import HistoryList from "@/components/sidebar/HistoryList.vue";
+import ImportMenu from "@/components/sidebar/ImportMenu.vue";
 import SearchResults from "@/components/sidebar/SearchResults.vue";
 import { useTreeActions } from "@/components/sidebar/useTreeActions";
 import { modKey } from "@/composables/usePlatform";
@@ -35,12 +36,10 @@ defineExpose({ focusSearch: () => search.value?.focus() });
     <div class="grid gap-2 px-2.5 pt-2.5 pb-1.5">
       <div class="flex h-7 items-center justify-between">
         <h2 class="label-caps">{{ title }}</h2>
-        <IconButton
-          v-if="layout.view === 'collections'"
-          icon="plus"
-          label="Koleksi baru"
-          @click="actions.newCollection"
-        />
+        <div v-if="layout.view === 'collections'" class="flex items-center gap-0.5">
+          <ImportMenu />
+          <IconButton icon="plus" label="Koleksi baru" @click="actions.newCollection" />
+        </div>
       </div>
       <label
         v-if="layout.view !== 'environments'"

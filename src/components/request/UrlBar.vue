@@ -3,17 +3,49 @@ import { ref } from "vue";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import AppButton from "@/components/ui/AppButton.vue";
 import VariableInput from "@/components/ui/VariableInput.vue";
+import { useDialogsStore } from "@/stores/dialogs";
+import { useToastsStore } from "@/stores/toasts";
+import { applyCurl, looksLikeCurl } from "@/utils/curl/apply";
+import { parseCurl } from "@/utils/curl/parse";
 import { METHODS, methodColor } from "@/utils/request";
 import { paramsFromUrl } from "@/utils/url";
 
 const props = defineProps<{ spec: RequestSpec; loading: boolean; dirty: boolean }>();
-const emit = defineEmits<{ send: []; cancel: []; save: [] }>();
+const emit = defineEmits<{ send: []; cancel: []; save: []; code: [] }>();
+const dialogs = useDialogsStore();
+const toasts = useToastsStore();
 
 const urlInput = ref<InstanceType<typeof VariableInput>>();
 
 function onUrl(url: string) {
   props.spec.url = url;
   props.spec.params = paramsFromUrl(url, props.spec.params);
+}
+
+async function onPaste(event: ClipboardEvent) {
+  const text = event.clipboardData?.getData("text") ?? "";
+  if (!looksLikeCurl(text)) return;
+  event.preventDefault();
+  const ok = await dialogs.confirm(
+    "Tempel sebagai request cURL?",
+    "Method, URL, header, body, dan auth request ini akan diganti sesuai perintah cURL.",
+    "Impor",
+    false,
+  );
+  if (!ok) return;
+  try {
+    const parsed = parseCurl(text);
+    applyCurl(props.spec, parsed);
+    toasts.push(
+      parsed.warnings[0] ?? "Request diisi dari perintah cURL",
+      parsed.warnings.length ? "danger" : "success",
+    );
+  } catch (error) {
+    toasts.push(
+      `cURL tidak bisa dibaca: ${error instanceof Error ? error.message : error}`,
+      "danger",
+    );
+  }
 }
 
 defineExpose({ focus: () => urlInput.value?.focus() });
@@ -43,6 +75,7 @@ defineExpose({ focus: () => urlInput.value?.focus() });
         placeholder="https://api.contoh.com/v1/users atau {{base_url}}/users"
         @update:model-value="onUrl"
         @enter="emit('send')"
+        @paste="onPaste"
       />
     </div>
     <AppButton
@@ -62,6 +95,13 @@ defineExpose({ focus: () => urlInput.value?.focus() });
     >
       Kirim
     </AppButton>
+    <AppButton
+      icon="code"
+      class="!h-9 !w-9 !px-0"
+      aria-label="Lihat kode"
+      title="Lihat kode"
+      @click="emit('code')"
+    />
     <AppButton
       icon="save"
       class="!h-9 max-md:!w-9 max-md:!px-0"

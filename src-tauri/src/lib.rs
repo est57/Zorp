@@ -50,6 +50,7 @@ pub fn run() {
             commands::environments::set_active_environment,
             commands::history::list_history,
             commands::history::clear_history,
+            commands::import::import_postman,
         ])
         .run(tauri::generate_context!())
         .expect("failed to start Zorp");

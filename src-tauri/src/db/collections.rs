@@ -125,3 +125,18 @@ pub fn set_auth(conn: &Connection, kind: NodeKind, id: Uuid, auth: &Auth) -> App
     let n = conn.execute(sql, params![json, id.to_string()])?;
     ensure_changed(n, "Koleksi atau folder")
 }
+
+/// Collection-level variables, stored as `[key, value]` pairs.
+pub fn variables(conn: &Connection, collection_id: Uuid) -> AppResult<Vec<(String, String)>> {
+    let json: Option<String> = conn
+        .query_row(
+            "SELECT variables_json FROM collections WHERE id = ?1",
+            [collection_id.to_string()],
+            |row| row.get(0),
+        )
+        .optional()?
+        .flatten();
+    Ok(json
+        .and_then(|j| serde_json::from_str(&j).ok())
+        .unwrap_or_default())
+}

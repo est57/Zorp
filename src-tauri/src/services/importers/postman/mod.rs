@@ -1,0 +1,115 @@
+mod body;
+mod fields;
+
+use serde_json::Value;
+use uuid::Uuid;
+
+use super::{ImportedCollection, ImportedNode, clean_name};
+use crate::error::{AppError, AppResult};
+use crate::models::request::{Auth, HttpMethod, RequestSettings, RequestSpec};
+use body::parse_body;
+use fields::{pairs, parse_auth, parse_url, str_of};
+
+const MAX_DEPTH: usize = 32;
+
+fn parse_method(value: &str, warnings: &mut Vec<String>, owner: &str) -> HttpMethod {
+    serde_json::from_value(Value::String(value.to_ascii_uppercase())).unwrap_or_else(|_| {
+        warnings.push(format!(
+            "{owner}: method {value} belum didukung, diganti GET"
+        ));
+        HttpMethod::Get
+    })
+}
+
+fn parse_request(name: String, request: &Value, warnings: &mut Vec<String>) -> RequestSpec {
+    // Postman v2 allows a request to be just a URL string.
+    let request = if request.is_string() {
+        &serde_json::json!({ "url": request })
+    } else {
+        request
+    };
+    let (url, params) = parse_url(request.get("url"));
+    let method = match str_of(request, "method") {
+        "" => "GET",
+        m => m,
+    };
+    RequestSpec {
+        id: Uuid::now_v7(),
+        method: parse_method(method, warnings, &name),
+        url,
+        params,
+        headers: pairs(request.get("header")),
+        body: parse_body(request.get("body"), warnings, &name),
+        auth: parse_auth(request.get("auth"), warnings, &name).unwrap_or(Auth::Inherit),
+        settings: RequestSettings::default(),
+        name,
+    }
+}
+
+fn parse_items(
+    items: Option<&Value>,
+    depth: usize,
+    warnings: &mut Vec<String>,
+) -> AppResult<Vec<ImportedNode>> {
+    if depth > MAX_DEPTH {
+        return Err(AppError::Validation("Struktur folder terlalu dalam".into()));
+    }
+    let mut nodes = Vec::new();
+    for item in items.and_then(Value::as_array).into_iter().flatten() {
+        if let Some(request) = item.get("request") {
+            let name = clean_name(str_of(item, "name"), "Request tanpa nama");
+            nodes.push(ImportedNode::Request(Box::new(parse_request(
+                name, request, warnings,
+            ))));
+        } else {
+            let name = clean_name(str_of(item, "name"), "Folder tanpa nama");
+            let auth = parse_auth(item.get("auth"), warnings, &name);
+            let children = parse_items(item.get("item"), depth + 1, warnings)?;
+            nodes.push(ImportedNode::Folder {
+                name,
+                auth,
+                children,
+            });
+        }
+    }
+    Ok(nodes)
+}
+
+pub fn parse(json: &str) -> AppResult<ImportedCollection> {
+    let root: Value = serde_json::from_str(json)
+        .map_err(|_| AppError::Validation("File bukan JSON yang valid".into()))?;
+    let schema = root
+        .pointer("/info/schema")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    if !schema.contains("collection/v2") || root.get("item").is_none() {
+        return Err(AppError::Validation(
+            "Format tidak dikenali. Ekspor koleksi dari Postman sebagai Collection v2.1".into(),
+        ));
+    }
+    let mut warnings = Vec::new();
+    let name = clean_name(
+        root.pointer("/info/name")
+            .and_then(Value::as_str)
+            .unwrap_or_default(),
+        "Koleksi impor",
+    );
+    let auth = parse_auth(root.get("auth"), &mut warnings, &name);
+    let variables = pairs(root.get("variable"))
+        .into_iter()
+        .filter(|kv| kv.enabled && !kv.key.is_empty())
+        .map(|kv| (kv.key, kv.value))
+        .collect();
+    let items = parse_items(root.get("item"), 0, &mut warnings)?;
+    Ok(ImportedCollection {
+        name,
+        auth,
+        variables,
+        items,
+        warnings,
+    })
+}
+
+#[cfg(test)]
+#[path = "../postman_tests.rs"]
+mod tests;

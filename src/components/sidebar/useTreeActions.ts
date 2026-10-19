@@ -1,10 +1,12 @@
 import { ref } from "vue";
 import type { NodeKind } from "@/bindings/NodeKind";
 import type { SavedRequest } from "@/bindings/SavedRequest";
+import { useSnippets } from "@/composables/useSnippets";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
 import { useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
+import { toCurl } from "@/utils/codegen/curl";
 import { type DropZone, orderAtEnd, orderNextTo } from "@/utils/order";
 import { newId, newRequest } from "@/utils/request";
 
@@ -35,6 +37,7 @@ export function useTreeActions() {
   const tabs = useTabsStore();
   const dialogs = useDialogsStore();
   const toasts = useToastsStore();
+  const snippets = useSnippets();
 
   async function newCollection() {
     const name = await dialogs.prompt("Koleksi baru", "Nama koleksi", "", "Buat");
@@ -59,6 +62,16 @@ export function useTreeActions() {
       collections.saveRequest(spec, item.collectionId, item.folderId),
     );
     if (saved) tabs.openSaved(saved);
+  }
+
+  async function copyCurl(item: SavedRequest) {
+    const curl = toCurl(snippets.build(item.spec, item.collectionId, item.folderId, false));
+    try {
+      await navigator.clipboard.writeText(curl);
+      toasts.push("Perintah cURL disalin", "success");
+    } catch {
+      toasts.push("Gagal menyalin ke clipboard", "danger");
+    }
   }
 
   async function rename(kind: NodeKind, id: string, current: string) {
@@ -119,5 +132,15 @@ export function useTreeActions() {
     );
   }
 
-  return { dragging, newCollection, newFolder, newRequestIn, duplicate, rename, remove, drop };
+  return {
+    dragging,
+    newCollection,
+    newFolder,
+    newRequestIn,
+    duplicate,
+    copyCurl,
+    rename,
+    remove,
+    drop,
+  };
 }

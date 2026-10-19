@@ -21,6 +21,8 @@ export const icons = {
   folderPlus: "M2 4.5h4l1.5 1.5H14v6.5H2zM8 8v3M6.5 9.5h3",
   chevronRight: "M6 4l4 4-4 4",
   lock: "M4 7.5h8v6H4zM5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5",
+  code: "M5.5 4.5 2 8l3.5 3.5M10.5 4.5 14 8l-3.5 3.5",
+  download: "M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10",
   list: "M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01",
   save: "M3 2.5h8l2.5 2.5v8.5H3zM5.5 2.5v3h4v-3M5 13.5V9.5h6v4",
 } as const;

@@ -12,7 +12,7 @@ withDefaults(
     inputId: undefined,
   },
 );
-defineEmits<{ enter: [] }>();
+defineEmits<{ enter: []; paste: [event: ClipboardEvent] }>();
 
 const envs = useEnvironmentsStore();
 const input = ref<HTMLInputElement>();
@@ -61,6 +61,7 @@ defineExpose({ focus: () => input.value?.focus() });
       @input="syncScroll"
       @keyup="syncScroll"
       @keydown.enter="$emit('enter')"
+      @paste="$emit('paste', $event)"
     />
   </div>
 </template>

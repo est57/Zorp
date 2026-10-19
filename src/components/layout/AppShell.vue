@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import CodeSnippetDialog from "@/components/request/CodeSnippetDialog.vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
+import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
 import NodeAuthDialog from "@/components/sidebar/NodeAuthDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
 import ToastHost from "@/components/ui/ToastHost.vue";
@@ -95,6 +97,8 @@ onMounted(async () => {
     <DialogHost />
     <SaveRequestDialog />
     <NodeAuthDialog />
+    <CodeSnippetDialog />
+    <ImportCurlDialog />
     <ToastHost />
   </div>
 </template>

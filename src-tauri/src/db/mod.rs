@@ -2,6 +2,7 @@ pub mod collections;
 pub mod environments;
 pub mod folders;
 pub mod history;
+pub mod import;
 pub mod requests;
 pub mod workspace;
 

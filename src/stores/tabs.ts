@@ -40,8 +40,8 @@ export const useTabsStore = defineStore("tabs", () => {
     else add(item.spec, item.collectionId, item.folderId);
   }
 
-  function openNew() {
-    add(newRequest(), null, null);
+  function openNew(spec: RequestSpec = newRequest()) {
+    add(spec, null, null);
   }
 
   /** Opens a detached copy, used for history entries and duplicates. */

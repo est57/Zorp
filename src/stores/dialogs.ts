@@ -25,6 +25,9 @@ export const useDialogsStore = defineStore("dialogs", () => {
   const saveTabId = ref<string | null>(null);
   /** Collection or folder whose auth is being edited. */
   const authTarget = ref<{ kind: "collection" | "folder"; id: string } | null>(null);
+  /** Tab whose code snippet is shown. */
+  const snippetTabId = ref<string | null>(null);
+  const curlImportOpen = ref(false);
 
   function prompt(title: string, label: string, value = "", confirmText = "Simpan") {
     return new Promise<string | null>((resolve) => {
@@ -42,5 +45,5 @@ export const useDialogsStore = defineStore("dialogs", () => {
     current.value = null;
   }
 
-  return { current, saveTabId, authTarget, prompt, confirm, close };
+  return { current, saveTabId, authTarget, snippetTabId, curlImportOpen, prompt, confirm, close };
 });
