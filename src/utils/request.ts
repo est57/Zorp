@@ -18,7 +18,7 @@ export function newRequest(overrides: Partial<RequestSpec> = {}): RequestSpec {
     headers: [],
     body: { type: "none" },
     auth: { type: "inherit" },
-    settings: { timeoutMs: 30000, followRedirects: true, verifyTls: true },
+    settings: { timeoutMs: 30000, followRedirects: true, verifyTls: true, useCookies: true },
     ...overrides,
   };
 }

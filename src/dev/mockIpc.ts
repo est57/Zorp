@@ -101,6 +101,31 @@ export function installMockBackend() {
         if (node) node.sortOrder = t.sortOrder;
         return null;
       }
+      case "list_cookies":
+        return [
+          {
+            domain: "api.contoh.dev",
+            path: "/",
+            name: "session",
+            value: "abc123",
+            expiresAt: null,
+            secure: true,
+            httpOnly: true,
+            hostOnly: true,
+          },
+          {
+            domain: "contoh.dev",
+            path: "/",
+            name: "theme",
+            value: "dark",
+            expiresAt: Date.now() + 86_400_000,
+            secure: false,
+            httpOnly: false,
+            hostOnly: false,
+          },
+        ];
+      case "delete_cookie":
+      case "clear_cookies":
       case "set_active_environment":
       case "plugin:event|listen":
         return null;
@@ -123,7 +148,7 @@ export function installMockBackend() {
           ],
           body: { type: "text", text: body },
           sizeBytes: body.length,
-          timing: { ttfbMs: 120, downloadMs: 22, totalMs: 142 },
+          timing: { dnsMs: 12, connectMs: 48, ttfbMs: 120, downloadMs: 22, totalMs: 142 },
           httpVersion: "HTTP/2.0",
           url: spec.url,
         };

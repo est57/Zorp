@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::sync::Arc;
 use std::time::Instant;
 
 use base64::Engine;
@@ -6,21 +7,33 @@ use reqwest::{Client, RequestBuilder, Response, redirect};
 
 use crate::error::{AppError, AppResult, ErrorKind};
 use crate::models::response::{ProgressPhase, ResponseBody, ResponseData, Timing};
+use crate::services::cookies::CookieJar;
+use crate::services::timing::{self, Phases, TimingLayer, TimingResolver};
 
 const INLINE_LIMIT: usize = 5 * 1024 * 1024;
 const PREVIEW_LIMIT: usize = 1024 * 1024;
 const MAX_REDIRECTS: usize = 10;
 
-pub fn new_client(verify_tls: bool, follow_redirects: bool) -> AppResult<Client> {
+pub fn new_client(
+    verify_tls: bool,
+    follow_redirects: bool,
+    jar: Option<Arc<CookieJar>>,
+) -> AppResult<Client> {
     let policy = if follow_redirects {
         redirect::Policy::limited(MAX_REDIRECTS)
     } else {
         redirect::Policy::none()
     };
-    Client::builder()
+    let mut builder = Client::builder()
         .user_agent(concat!("Zorp/", env!("CARGO_PKG_VERSION")))
         .redirect(policy)
         .tls_danger_accept_invalid_certs(!verify_tls)
+        .dns_resolver(Arc::new(TimingResolver))
+        .connector_layer(TimingLayer);
+    if let Some(jar) = jar {
+        builder = builder.cookie_provider(jar);
+    }
+    builder
         .build()
         .map_err(|e| AppError::Internal(e.to_string()))
 }
@@ -103,8 +116,12 @@ pub async fn execute(
 ) -> AppResult<ResponseData> {
     let started = Instant::now();
     progress(ProgressPhase::Sending, 0);
-    let mut response: Response = builder.send().await.map_err(classify)?;
+    let recorder = timing::Recorder::default();
+    let mut response: Response = timing::measure(recorder.clone(), builder.send())
+        .await
+        .map_err(classify)?;
     let ttfb = started.elapsed();
+    let phases: Phases = *recorder.lock().unwrap_or_else(|e| e.into_inner());
     progress(ProgressPhase::Downloading, 0);
 
     let status = response.status();
@@ -150,6 +167,11 @@ pub async fn execute(
         body,
         size_bytes,
         timing: Timing {
+            dns_ms: phases.dns.map(|d| d.as_millis() as u32),
+            // Connector time includes the DNS lookup, so subtract it to get TCP + TLS.
+            connect_ms: phases
+                .connect
+                .map(|c| c.saturating_sub(phases.dns.unwrap_or_default()).as_millis() as u32),
             ttfb_ms: ttfb.as_millis() as u32,
             download_ms: (total - ttfb).as_millis() as u32,
             total_ms: total.as_millis() as u32,

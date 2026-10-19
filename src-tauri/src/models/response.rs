@@ -15,6 +15,10 @@ pub enum ResponseBody {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct Timing {
+    /// Null when no lookup happened, for example on a reused connection.
+    pub dns_ms: Option<u32>,
+    /// TCP and TLS setup; null when an existing connection was reused.
+    pub connect_ms: Option<u32>,
     pub ttfb_ms: u32,
     pub download_ms: u32,
     pub total_ms: u32,

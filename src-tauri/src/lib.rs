@@ -7,6 +7,7 @@ mod state;
 
 use tauri::Manager;
 
+use crate::services::cookies::CookieJar;
 use crate::services::secrets::KeychainStore;
 use crate::state::AppState;
 
@@ -25,11 +26,15 @@ pub fn run() {
             let _ = std::fs::remove_dir_all(&spill_dir);
             let conn = db::open(&data_dir.join(DB_FILE))?;
             let workspace = db::workspace::ensure_default(&conn)?;
+            let jar = db::cookies::load(&conn, workspace.id)?
+                .map(|json| CookieJar::from_json(&json))
+                .unwrap_or_default();
             app.manage(AppState::new(
                 conn,
                 workspace.id,
                 Box::new(KeychainStore),
                 spill_dir,
+                jar,
             ));
             Ok(())
         })
@@ -56,6 +61,9 @@ pub fn run() {
             commands::oauth::oauth_cancel,
             commands::oauth::oauth_token_status,
             commands::oauth::oauth_clear_token,
+            commands::cookies::list_cookies,
+            commands::cookies::delete_cookie,
+            commands::cookies::clear_cookies,
         ])
         .run(tauri::generate_context!())
         .expect("failed to start Zorp");

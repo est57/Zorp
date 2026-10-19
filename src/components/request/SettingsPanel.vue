@@ -28,6 +28,10 @@ function setTimeoutMs(value: string) {
       Ikuti redirect secara otomatis (maksimal 10)
     </label>
     <label class="flex items-center gap-2.5">
+      <input v-model="spec.settings.useCookies" type="checkbox" :class="checkboxClass" />
+      Kirim dan simpan cookie secara otomatis
+    </label>
+    <label class="flex items-center gap-2.5">
       <input v-model="spec.settings.verifyTls" type="checkbox" :class="checkboxClass" />
       Verifikasi sertifikat TLS
     </label>

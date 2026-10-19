@@ -3,15 +3,18 @@ import { computed, ref } from "vue";
 import AppButton from "@/components/ui/AppButton.vue";
 import SegmentedTabs, { type TabItem } from "@/components/ui/SegmentedTabs.vue";
 import type { RunState } from "@/stores/runner";
+import { useDialogsStore } from "@/stores/dialogs";
 import { useToastsStore } from "@/stores/toasts";
 import { parseSetCookies } from "@/utils/cookies";
 import HeaderTable from "./HeaderTable.vue";
 import ResponseBodyView from "./ResponseBodyView.vue";
 import ResponseMeta from "./ResponseMeta.vue";
 import ResponseState from "./ResponseState.vue";
+import ResponseTimeline from "./ResponseTimeline.vue";
 
 const props = defineProps<{ run: RunState }>();
 const toasts = useToastsStore();
+const dialogs = useDialogsStore();
 
 const section = ref("body");
 const mode = ref<"pretty" | "raw">("pretty");
@@ -22,6 +25,7 @@ const sections = computed<TabItem[]>(() => [
   { id: "body", label: "Body" },
   { id: "headers", label: "Headers", badge: response.value?.headers.length },
   { id: "cookies", label: "Cookies", badge: cookies.value.length || undefined },
+  { id: "timeline", label: "Timeline" },
 ]);
 
 async function copyBody() {
@@ -57,6 +61,13 @@ async function copyBody() {
             >
             <AppButton variant="ghost" icon="copy" aria-label="Salin body" @click="copyBody" />
           </template>
+          <AppButton
+            v-else-if="section === 'cookies'"
+            variant="ghost"
+            @click="dialogs.cookiesOpen = true"
+          >
+            Kelola cookie
+          </AppButton>
         </template>
       </SegmentedTabs>
       <div class="min-h-0 flex-1 overflow-auto">
@@ -67,6 +78,7 @@ async function copyBody() {
           :columns="['Header', 'Value']"
           empty="Response tidak memiliki header."
         />
+        <ResponseTimeline v-else-if="section === 'timeline'" :timing="response.timing" />
         <HeaderTable
           v-else
           :rows="cookies.map((c) => [c.name, c.value, c.attributes])"

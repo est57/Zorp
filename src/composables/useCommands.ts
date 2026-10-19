@@ -103,6 +103,12 @@ export function useCommands() {
         run: () => layout.selectView("environments"),
       },
       {
+        id: "cookies",
+        group: "Aksi",
+        label: "Kelola cookie",
+        run: () => (dialogs.cookiesOpen = true),
+      },
+      {
         id: "sidebar",
         group: "Aksi",
         label: "Tampilkan atau sembunyikan sidebar",

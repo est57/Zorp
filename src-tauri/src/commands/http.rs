@@ -67,11 +67,15 @@ pub async fn send_request(
 ) -> AppResult<ResponseData> {
     let (auth, vars) = effective_auth(&state, &spec)?;
     let (resolved, auth) = resolve_spec(&spec, &auth, &vars)?;
-    let client = state.client(spec.settings.verify_tls, spec.settings.follow_redirects)?;
+    let client = state.client(
+        spec.settings.verify_tls,
+        spec.settings.follow_redirects,
+        spec.settings.use_cookies,
+    )?;
     let auth = match auth {
         Auth::OAuth2(config) => {
             let config = oauth::resolve_config(&config, &vars)?;
-            let token_client = state.client(true, true)?;
+            let token_client = state.client(true, true, false)?;
             Auth::Bearer {
                 token: oauth::access_token(state.secrets.as_ref(), &token_client, &config).await?,
             }
@@ -96,6 +100,7 @@ pub async fn send_request(
         _ = cancelled => Err(AppError::Cancelled),
     };
     state.finish(request_id);
+    state.persist_cookies()?;
     record(&state, &spec, &result)?;
     result
 }

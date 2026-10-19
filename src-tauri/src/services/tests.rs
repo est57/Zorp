@@ -36,7 +36,7 @@ async fn send(
     vars: Variables,
 ) -> Result<crate::models::response::ResponseData, AppError> {
     let (resolved, auth) = resolve_spec(spec, &spec.auth, &vars)?;
-    let client = new_client(true, true)?;
+    let client = new_client(true, true, None)?;
     let dir = std::env::temp_dir().join("zorp-tests");
     execute(build(&client, &resolved, &auth)?, &dir, |_, _| {}).await
 }

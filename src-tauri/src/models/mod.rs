@@ -1,5 +1,6 @@
 pub mod app_info;
 pub mod collection;
+pub mod cookie;
 pub mod environment;
 pub mod history;
 pub mod import;

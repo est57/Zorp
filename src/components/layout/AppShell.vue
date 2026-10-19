@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import CommandPalette from "@/components/palette/CommandPalette.vue";
 import CodeSnippetDialog from "@/components/request/CodeSnippetDialog.vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
+import CookieManagerDialog from "@/components/sidebar/CookieManagerDialog.vue";
 import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
 import NodeAuthDialog from "@/components/sidebar/NodeAuthDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
@@ -105,6 +106,7 @@ onMounted(async () => {
     <CodeSnippetDialog />
     <ImportCurlDialog />
     <CommandPalette />
+    <CookieManagerDialog />
     <ToastHost />
   </div>
 </template>

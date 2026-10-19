@@ -96,6 +96,12 @@ pub struct RequestSettings {
     pub timeout_ms: u32,
     pub follow_redirects: bool,
     pub verify_tls: bool,
+    #[serde(default = "enabled")]
+    pub use_cookies: bool,
+}
+
+fn enabled() -> bool {
+    true
 }
 
 impl Default for RequestSettings {
@@ -104,6 +110,7 @@ impl Default for RequestSettings {
             timeout_ms: 30_000,
             follow_redirects: true,
             verify_tls: true,
+            use_cookies: true,
         }
     }
 }

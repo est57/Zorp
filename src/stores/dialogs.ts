@@ -28,6 +28,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
   /** Tab whose code snippet is shown. */
   const snippetTabId = ref<string | null>(null);
   const curlImportOpen = ref(false);
+  const cookiesOpen = ref(false);
   /** Command palette scope; null when closed. */
   const palette = ref<"all" | "environments" | null>(null);
 
@@ -53,6 +54,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
     authTarget,
     snippetTabId,
     curlImportOpen,
+    cookiesOpen,
     palette,
     prompt,
     confirm,

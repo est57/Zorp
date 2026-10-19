@@ -1,4 +1,5 @@
 pub mod collections;
+pub mod cookies;
 pub mod environments;
 pub mod folders;
 pub mod history;
@@ -17,7 +18,10 @@ use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
 
-const MIGRATIONS_SLICE: &[M<'_>] = &[M::up(include_str!("../../migrations/0001_init.sql"))];
+const MIGRATIONS_SLICE: &[M<'_>] = &[
+    M::up(include_str!("../../migrations/0001_init.sql")),
+    M::up(include_str!("../../migrations/0002_cookies.sql")),
+];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;
 

@@ -16,7 +16,7 @@ defineProps<{ response: ResponseData }>();
     </span>
     <span
       class="font-mono text-muted"
-      :title="`Menunggu respons ${response.timing.ttfbMs} ms, unduh ${response.timing.downloadMs} ms`"
+      :title="`DNS ${response.timing.dnsMs ?? '-'} ms, koneksi ${response.timing.connectMs ?? '-'} ms, respons pertama ${response.timing.ttfbMs} ms, unduh ${response.timing.downloadMs} ms`"
     >
       Waktu
       <b class="font-semibold text-fg tabular-nums">{{

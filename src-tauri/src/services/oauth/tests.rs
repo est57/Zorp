@@ -40,7 +40,7 @@ async fn client_credentials_uses_basic_auth_and_parses_expiry() {
         .mount(&server)
         .await;
 
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     let (_tx, rx) = oneshot::channel();
     let token = fetch_token(
         &client,
@@ -75,7 +75,7 @@ async fn expired_token_is_refreshed_and_keeps_refresh_token() {
     };
     token_store::save(&store, &cfg.token_key, &old).unwrap();
 
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     assert_eq!(access_token(&store, &client, &cfg).await.unwrap(), "new");
     let saved = token_store::load(&store, &cfg.token_key).unwrap().unwrap();
     assert_eq!(saved.refresh_token.as_deref(), Some("r-1"));
@@ -84,7 +84,7 @@ async fn expired_token_is_refreshed_and_keeps_refresh_token() {
 #[tokio::test]
 async fn missing_token_for_authorization_code_is_an_error() {
     let server = MockServer::start().await;
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     let err = access_token(
         &MemoryStore::default(),
         &client,
@@ -129,7 +129,7 @@ async fn authorization_code_flow_exchanges_code_with_pkce_verifier() {
         .mount(&server)
         .await;
 
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     let (_tx, rx) = oneshot::channel();
     let cfg = config(&server, OAuthGrant::AuthorizationCode);
     let open = |url: &str| {
@@ -144,7 +144,7 @@ async fn authorization_code_flow_exchanges_code_with_pkce_verifier() {
 #[tokio::test]
 async fn authorization_code_rejects_mismatched_state() {
     let server = MockServer::start().await;
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     let (_tx, rx) = oneshot::channel();
     let open = |url: &str| {
         redirect_with(url, "abc", Some("forged"));
@@ -171,7 +171,7 @@ async fn token_endpoint_errors_are_reported() {
         ))
         .mount(&server)
         .await;
-    let client = new_client(true, true).unwrap();
+    let client = new_client(true, true, None).unwrap();
     let err = token_endpoint::client_credentials(
         &client,
         &config(&server, OAuthGrant::ClientCredentials),

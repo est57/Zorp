@@ -19,7 +19,7 @@ pub async fn oauth_get_token(
     collection_id: Option<Uuid>,
 ) -> AppResult<TokenStatus> {
     let config = oauth::resolve_config(&config, &context_variables(&state, collection_id)?)?;
-    let client = state.client(true, true)?;
+    let client = state.client(true, true, false)?;
     state.cancel(LOGIN_FLOW_ID)?;
     let cancelled = state.register(LOGIN_FLOW_ID)?;
     let open_browser = |url: &str| {
