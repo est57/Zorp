@@ -7,10 +7,33 @@ use uuid::Uuid;
 use super::{ImportedCollection, ImportedNode, clean_name};
 use crate::error::{AppError, AppResult};
 use crate::models::request::{Auth, HttpMethod, RequestSettings, RequestSpec};
+use crate::models::script::Scripts;
 use body::parse_body;
 use fields::{pairs, parse_auth, parse_url, str_of};
 
 const MAX_DEPTH: usize = 32;
+
+/// Reads `event` entries; Postman stores script source as an array of lines.
+fn parse_scripts(events: Option<&Value>) -> Scripts {
+    let mut scripts = Scripts::default();
+    for event in events.and_then(Value::as_array).into_iter().flatten() {
+        let source = match event.pointer("/script/exec") {
+            Some(Value::Array(lines)) => lines
+                .iter()
+                .filter_map(Value::as_str)
+                .collect::<Vec<_>>()
+                .join("\n"),
+            Some(Value::String(text)) => text.clone(),
+            _ => continue,
+        };
+        match str_of(event, "listen") {
+            "prerequest" => scripts.pre_request = source,
+            "test" => scripts.test = source,
+            _ => {}
+        }
+    }
+    scripts
+}
 
 fn parse_method(value: &str, warnings: &mut Vec<String>, owner: &str) -> HttpMethod {
     serde_json::from_value(Value::String(value.to_ascii_uppercase())).unwrap_or_else(|_| {
@@ -42,6 +65,7 @@ fn parse_request(name: String, request: &Value, warnings: &mut Vec<String>) -> R
         body: parse_body(request.get("body"), warnings, &name),
         auth: parse_auth(request.get("auth"), warnings, &name).unwrap_or(Auth::Inherit),
         settings: RequestSettings::default(),
+        scripts: Default::default(),
         name,
     }
 }
@@ -58,9 +82,9 @@ fn parse_items(
     for item in items.and_then(Value::as_array).into_iter().flatten() {
         if let Some(request) = item.get("request") {
             let name = clean_name(str_of(item, "name"), "Request tanpa nama");
-            nodes.push(ImportedNode::Request(Box::new(parse_request(
-                name, request, warnings,
-            ))));
+            let mut spec = parse_request(name, request, warnings);
+            spec.scripts = parse_scripts(item.get("event"));
+            nodes.push(ImportedNode::Request(Box::new(spec)));
         } else {
             let name = clean_name(str_of(item, "name"), "Folder tanpa nama");
             let auth = parse_auth(item.get("auth"), warnings, &name);

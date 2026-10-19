@@ -151,5 +151,6 @@ pub async fn execute(
         },
         http_version,
         url,
+        script: Default::default(),
     })
 }

@@ -33,6 +33,7 @@ tauri-plugin-opener = "2.7.2"
 cookie_store = "0.22.1"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
+rquickjs = "0.14.0"
 
 [profile.release]
 codegen-units = 1

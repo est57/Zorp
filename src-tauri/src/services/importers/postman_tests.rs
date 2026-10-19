@@ -11,6 +11,7 @@ const SAMPLE: &str = r#"{
       "item": [
         {
           "name": "List products",
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('ok', () => {", "  pm.response.to.have.status(200);", "});"] } }],
           "request": {
             "method": "GET",
             "header": [{ "key": "Accept", "value": "application/json" }],
@@ -62,6 +63,12 @@ fn parses_folders_requests_auth_and_variables() {
     assert_eq!(list.params.len(), 2);
     assert!(!list.params[1].enabled);
     assert!(matches!(list.auth, Auth::Inherit));
+    assert!(
+        list.scripts
+            .test
+            .contains("pm.response.to.have.status(200);")
+    );
+    assert!(list.scripts.pre_request.is_empty());
 
     let ImportedNode::Request(create) = &children[1] else {
         panic!("expected request")

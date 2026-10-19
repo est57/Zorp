@@ -7,6 +7,7 @@ pub mod network;
 pub mod oauth;
 pub mod request_builder;
 pub mod resolver;
+pub mod scripting;
 pub mod secrets;
 pub mod timing;
 

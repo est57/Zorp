@@ -2,6 +2,8 @@ use serde::Serialize;
 use ts_rs::TS;
 use uuid::Uuid;
 
+use super::script::ScriptReport;
+
 #[derive(Debug, Clone, Serialize, TS)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export)]
@@ -37,6 +39,7 @@ pub struct ResponseData {
     pub timing: Timing,
     pub http_version: String,
     pub url: String,
+    pub script: ScriptReport,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, TS)]

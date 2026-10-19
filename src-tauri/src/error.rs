@@ -27,6 +27,8 @@ pub enum AppError {
     Cancelled,
     #[error("{0}")]
     OAuth(String),
+    #[error("Script gagal: {0}")]
+    Script(String),
     #[error("Gagal mengakses keychain: {0}")]
     Secret(String),
     #[error("{0}")]
@@ -52,6 +54,7 @@ pub enum ErrorKind {
     Secret,
     #[serde(rename = "oauth")]
     OAuth,
+    Script,
     Internal,
 }
 
@@ -76,6 +79,7 @@ impl AppError {
             Self::Network { kind, .. } => *kind,
             Self::Cancelled => ErrorKind::Cancelled,
             Self::OAuth(_) => ErrorKind::OAuth,
+            Self::Script(_) => ErrorKind::Script,
             Self::Secret(_) => ErrorKind::Secret,
             Self::Internal(_) => ErrorKind::Internal,
         }

@@ -1,0 +1,82 @@
+use std::collections::HashMap;
+
+use uuid::Uuid;
+
+use crate::db;
+use crate::error::AppResult;
+use crate::models::request::{Auth, RequestSpec};
+use crate::services::resolver::Variables;
+use crate::state::AppState;
+
+/// Where a request lives and the variable layers that apply to it.
+pub struct RequestContext {
+    pub collection_id: Option<Uuid>,
+    pub folder_id: Option<Uuid>,
+    pub environment: Vec<(String, String)>,
+    pub collection: Vec<(String, String)>,
+    pub has_environment: bool,
+}
+
+impl RequestContext {
+    pub fn load(state: &AppState, spec: &RequestSpec) -> AppResult<Self> {
+        let location = db::requests::location(&*state.db()?, spec.id)?;
+        Self::for_location(
+            state,
+            location.map(|(c, _)| c),
+            location.and_then(|(_, f)| f),
+        )
+    }
+
+    pub fn for_location(
+        state: &AppState,
+        collection_id: Option<Uuid>,
+        folder_id: Option<Uuid>,
+    ) -> AppResult<Self> {
+        let conn = state.db()?;
+        let environment =
+            db::environments::active_values(&conn, state.workspace_id, state.secrets.as_ref())?;
+        let has_environment = db::environments::list(&conn, state.workspace_id)?
+            .iter()
+            .any(|e| e.is_active);
+        let collection = match collection_id {
+            Some(id) => db::collections::variables(&conn, id)?,
+            None => Vec::new(),
+        };
+        Ok(Self {
+            collection_id,
+            folder_id,
+            environment,
+            collection,
+            has_environment,
+        })
+    }
+
+    /// Collection values, overridden by the environment, overridden by script locals (Postman precedence).
+    pub fn variables(&self, locals: &HashMap<String, String>) -> Variables {
+        let locals: Vec<(String, String)> =
+            locals.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
+        Variables::from_layers(vec![
+            self.collection.clone(),
+            self.environment.clone(),
+            locals,
+        ])
+    }
+
+    pub fn variable_map(&self, locals: &HashMap<String, String>) -> HashMap<String, String> {
+        let mut map: HashMap<String, String> = self.collection.iter().cloned().collect();
+        map.extend(self.environment.iter().cloned());
+        map.extend(locals.clone());
+        map
+    }
+
+    pub fn effective_auth(&self, state: &AppState, spec: &RequestSpec) -> AppResult<Auth> {
+        Ok(match (&spec.auth, self.collection_id) {
+            (Auth::Inherit, Some(collection_id)) => {
+                db::collections::inherited_auth(&*state.db()?, collection_id, self.folder_id)?
+                    .unwrap_or(Auth::None)
+            }
+            (Auth::Inherit, None) => Auth::None,
+            (other, _) => other.clone(),
+        })
+    }
+}

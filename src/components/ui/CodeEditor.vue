@@ -3,10 +3,11 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { json } from "@codemirror/lang-json";
+import { javascript } from "@codemirror/lang-javascript";
 import { baseExtensions } from "./codemirror";
 
 const props = withDefaults(
-  defineProps<{ readonly?: boolean; language?: "json" | "text"; label: string }>(),
+  defineProps<{ readonly?: boolean; language?: "json" | "text" | "javascript"; label: string }>(),
   {
     readonly: false,
     language: "text",
@@ -18,7 +19,8 @@ const host = ref<HTMLDivElement>();
 const languageSlot = new Compartment();
 let view: EditorView | null = null;
 
-const languageExtension = () => (props.language === "json" ? json() : []);
+const languageExtension = () =>
+  props.language === "json" ? json() : props.language === "javascript" ? javascript() : [];
 
 onMounted(() => {
   view = new EditorView({

@@ -6,6 +6,7 @@ pub mod history;
 pub mod import;
 pub mod requests;
 pub mod settings;
+pub mod variables;
 pub mod workspace;
 
 #[cfg(test)]

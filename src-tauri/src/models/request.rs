@@ -3,6 +3,7 @@ use ts_rs::TS;
 use uuid::Uuid;
 
 use super::oauth::OAuth2Config;
+use super::script::Scripts;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "UPPERCASE")]
@@ -129,6 +130,8 @@ pub struct RequestSpec {
     pub auth: Auth,
     #[serde(default)]
     pub settings: RequestSettings,
+    #[serde(default)]
+    pub scripts: Scripts,
 }
 
 impl HttpMethod {

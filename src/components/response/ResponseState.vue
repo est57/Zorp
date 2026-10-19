@@ -26,6 +26,8 @@ const errorTitle = computed(() => {
       return "URL tidak valid";
     case "timeout":
       return "Batas waktu habis";
+    case "script":
+      return "Script gagal";
     case "dns":
     case "connect":
     case "tls":

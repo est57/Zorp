@@ -11,6 +11,7 @@ import ResponseBodyView from "./ResponseBodyView.vue";
 import ResponseMeta from "./ResponseMeta.vue";
 import ResponseState from "./ResponseState.vue";
 import ResponseTimeline from "./ResponseTimeline.vue";
+import ScriptResults from "./ScriptResults.vue";
 
 const props = defineProps<{ run: RunState }>();
 const toasts = useToastsStore();
@@ -21,11 +22,21 @@ const mode = ref<"pretty" | "raw">("pretty");
 const response = computed(() => (props.run.status === "done" ? props.run.response : undefined));
 const cookies = computed(() => parseSetCookies(response.value?.headers ?? []));
 
+const testBadge = computed(() => {
+  const tests = response.value?.script.tests ?? [];
+  return tests.length ? `${tests.filter((t) => t.passed).length}/${tests.length}` : undefined;
+});
+const consoleCount = computed(
+  () => (response.value?.script.logs.length ?? 0) + (response.value?.script.errors.length ?? 0),
+);
+
 const sections = computed<TabItem[]>(() => [
   { id: "body", label: "Body" },
   { id: "headers", label: "Headers", badge: response.value?.headers.length },
   { id: "cookies", label: "Cookies", badge: cookies.value.length || undefined },
   { id: "timeline", label: "Timeline" },
+  { id: "tests", label: "Tes", badge: testBadge.value },
+  { id: "console", label: "Konsol", badge: consoleCount.value || undefined },
 ]);
 
 async function copyBody() {
@@ -79,6 +90,11 @@ async function copyBody() {
           empty="Response tidak memiliki header."
         />
         <ResponseTimeline v-else-if="section === 'timeline'" :timing="response.timing" />
+        <ScriptResults
+          v-else-if="section === 'tests' || section === 'console'"
+          :report="response.script"
+          :view="section === 'tests' ? 'tests' : 'console'"
+        />
         <HeaderTable
           v-else
           :rows="cookies.map((c) => [c.name, c.value, c.attributes])"

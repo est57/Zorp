@@ -5,6 +5,7 @@ import type { ResponseData } from "@/bindings/ResponseData";
 import { cancelRequest, onProgress, sendRequest } from "@/api/http";
 import { ApiError, toApiError } from "@/api/invoke";
 import { cloneSpec, newId } from "@/utils/request";
+import { useEnvironmentsStore } from "./environments";
 import { useHistoryStore } from "./history";
 import type { Tab } from "./tabs";
 
@@ -52,6 +53,8 @@ export const useRunnerStore = defineStore("runner", () => {
     try {
       const response = await sendRequest(runId, cloneSpec(tab.draft));
       if (current()) runs[tab.id] = { status: "done", runId, response, finishedAt: Date.now() };
+      // Scripts may have changed environment values shown elsewhere in the UI.
+      if (response.script.variablesChanged) void useEnvironmentsStore().load();
     } catch (raw) {
       const error = toApiError(raw);
       if (current()) {

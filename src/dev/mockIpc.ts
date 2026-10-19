@@ -166,6 +166,21 @@ export function installMockBackend() {
           timing: { dnsMs: 12, connectMs: 48, ttfbMs: 120, downloadMs: 22, totalMs: 142 },
           httpVersion: "HTTP/2.0",
           url: spec.url,
+          script: {
+            tests: spec.scripts.test.trim()
+              ? [
+                  { name: "Status 200", passed: true, error: null },
+                  {
+                    name: "Respons di bawah 100 ms",
+                    passed: false,
+                    error: "expected 142 to be below 100",
+                  },
+                ]
+              : [],
+            logs: spec.scripts.test.trim() ? [{ level: "log", message: "total user: 47" }] : [],
+            errors: [],
+            variablesChanged: false,
+          },
         };
       }
       default:

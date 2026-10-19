@@ -6,6 +6,7 @@ import SegmentedTabs, { type TabItem } from "@/components/ui/SegmentedTabs.vue";
 import { urlFromParams } from "@/utils/url";
 import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
+import ScriptEditor from "./ScriptEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
 
 const props = defineProps<{ spec: RequestSpec; collectionId: string | null }>();
@@ -19,6 +20,13 @@ const sections = computed<TabItem[]>(() => [
   { id: "headers", label: "Headers", badge: count(props.spec.headers) },
   { id: "body", label: "Body", badge: props.spec.body.type === "none" ? undefined : "1" },
   { id: "auth", label: "Auth" },
+  {
+    id: "scripts",
+    label: "Script",
+    badge:
+      [props.spec.scripts.preRequest, props.spec.scripts.test].filter((s) => s.trim()).length ||
+      undefined,
+  },
   { id: "settings", label: "Pengaturan" },
 ]);
 
@@ -52,6 +60,7 @@ function setParams(rows: RequestSpec["params"]) {
         inherit-label="Ikuti folder atau koleksi"
         :collection-id="collectionId"
       />
+      <ScriptEditor v-else-if="section === 'scripts'" :spec="spec" />
       <SettingsPanel v-else :spec="spec" />
     </div>
   </div>

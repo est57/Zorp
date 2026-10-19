@@ -4,5 +4,6 @@ import type { Body } from "./Body";
 import type { HttpMethod } from "./HttpMethod";
 import type { KeyValue } from "./KeyValue";
 import type { RequestSettings } from "./RequestSettings";
+import type { Scripts } from "./Scripts";
 
-export type RequestSpec = { id: string, name: string, method: HttpMethod, url: string, params: Array<KeyValue>, headers: Array<KeyValue>, body: Body, auth: Auth, settings: RequestSettings, };
+export type RequestSpec = { id: string, name: string, method: HttpMethod, url: string, params: Array<KeyValue>, headers: Array<KeyValue>, body: Body, auth: Auth, settings: RequestSettings, scripts: Scripts, };
