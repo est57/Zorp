@@ -26,7 +26,8 @@ const open = defineModel<boolean>("open", { required: true });
             description
           }}</DialogDescription>
         </header>
-        <div class="min-h-0 overflow-auto">
+        <!-- Inset padding keeps focus rings of edge controls from being clipped by the scroller. -->
+        <div class="-m-1 min-h-0 overflow-auto p-1">
           <slot />
         </div>
       </DialogContent>
