@@ -2,6 +2,7 @@
 import type { SavedRequest } from "@/bindings/SavedRequest";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import { useCollectionsStore } from "@/stores/collections";
+import { useDialogsStore } from "@/stores/dialogs";
 import { useTabsStore } from "@/stores/tabs";
 import { methodColor, methodLabel } from "@/utils/request";
 import TreeRow, { type MenuItem } from "./TreeRow.vue";
@@ -13,6 +14,7 @@ const props = defineProps<{ collectionId: string; folderId: string | null; depth
 const collections = useCollectionsStore();
 const tabs = useTabsStore();
 const actions = useTreeActions();
+const dialogs = useDialogsStore();
 
 const folderMenu = (id: string, name: string): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(props.collectionId, id) },
@@ -21,6 +23,7 @@ const folderMenu = (id: string, name: string): MenuItem[] => [
     icon: "folderPlus",
     run: () => actions.newFolder(props.collectionId, id),
   },
+  { label: "Atur auth", icon: "lock", run: () => (dialogs.authTarget = { kind: "folder", id }) },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("folder", id, name) },
   { label: "Hapus", icon: "trash", danger: true, run: () => actions.remove("folder", id, name) },
 ];
@@ -54,10 +57,13 @@ const drag = (kind: "folder" | "request", id: string) =>
         :expanded="collections.expanded.has(folder.id)"
         :menu="folderMenu(folder.id, folder.name)"
         draggable
-        droppable
+        zones="all"
         @activate="collections.toggle(folder.id)"
         @dragstart="drag('folder', folder.id)"
-        @drop="actions.dropInto(collectionId, folder.id)"
+        @drop="
+          (zone) =>
+            actions.drop({ kind: 'folder', id: folder.id, collectionId, parentId: folderId, zone })
+        "
       >
         <template #lead>
           <AppIcon
@@ -83,8 +89,19 @@ const drag = (kind: "folder" | "request", id: string) =>
       :selected="tabs.activeId === item.spec.id"
       :menu="requestMenu(item)"
       draggable
+      zones="edges"
       @activate="tabs.openSaved(item)"
       @dragstart="drag('request', item.spec.id)"
+      @drop="
+        (zone) =>
+          actions.drop({
+            kind: 'request',
+            id: item.spec.id,
+            collectionId,
+            parentId: folderId,
+            zone,
+          })
+      "
     >
       <template #lead>
         <span

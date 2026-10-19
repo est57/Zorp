@@ -4,7 +4,7 @@ import type { RequestSpec } from "@/bindings/RequestSpec";
 import KeyValueTable from "@/components/ui/KeyValueTable.vue";
 import SegmentedTabs, { type TabItem } from "@/components/ui/SegmentedTabs.vue";
 import { urlFromParams } from "@/utils/url";
-import AuthPanel from "./AuthPanel.vue";
+import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
 
@@ -46,7 +46,11 @@ function setParams(rows: RequestSpec["params"]) {
         describe
       />
       <BodyEditor v-else-if="section === 'body'" :spec="spec" />
-      <AuthPanel v-else-if="section === 'auth'" :spec="spec" />
+      <AuthForm
+        v-else-if="section === 'auth'"
+        v-model="spec.auth"
+        inherit-label="Ikuti folder atau koleksi"
+      />
       <SettingsPanel v-else :spec="spec" />
     </div>
   </div>

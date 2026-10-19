@@ -1,3 +1,4 @@
+import type { Auth } from "@/bindings/Auth";
 import type { Collection } from "@/bindings/Collection";
 import type { CollectionTree } from "@/bindings/CollectionTree";
 import type { Folder } from "@/bindings/Folder";
@@ -24,3 +25,6 @@ export const deleteNode = (kind: NodeKind, id: string) => invoke<void>("delete_n
 
 export const moveNode = (kind: NodeKind, id: string, target: MoveTarget) =>
   invoke<void>("move_node", { kind, id, target });
+
+export const setNodeAuth = (kind: NodeKind, id: string, auth: Auth) =>
+  invoke<void>("set_node_auth", { kind, id, auth });

@@ -3,16 +3,23 @@ import type { Collection } from "@/bindings/Collection";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import { useCollectionsStore } from "@/stores/collections";
+import { useDialogsStore } from "@/stores/dialogs";
 import TreeBranch from "./TreeBranch.vue";
 import TreeRow, { type MenuItem } from "./TreeRow.vue";
 import { useTreeActions } from "./useTreeActions";
 
 const collections = useCollectionsStore();
 const actions = useTreeActions();
+const dialogs = useDialogsStore();
 
 const menu = (c: Collection): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(c.id, null) },
   { label: "Folder baru", icon: "folderPlus", run: () => actions.newFolder(c.id, null) },
+  {
+    label: "Atur auth",
+    icon: "lock",
+    run: () => (dialogs.authTarget = { kind: "collection", id: c.id }),
+  },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("collection", c.id, c.name) },
   {
     label: "Hapus",
@@ -35,10 +42,13 @@ const menu = (c: Collection): MenuItem[] => [
         :depth="0"
         :expanded="collections.expanded.has(c.id)"
         :menu="menu(c)"
-        droppable
+        zones="inside"
         class="font-medium"
         @activate="collections.toggle(c.id)"
-        @drop="actions.dropInto(c.id, null)"
+        @drop="
+          (zone) =>
+            actions.drop({ kind: 'collection', id: c.id, collectionId: c.id, parentId: null, zone })
+        "
       >
         <template #lead>
           <AppIcon

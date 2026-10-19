@@ -5,6 +5,9 @@ pub mod history;
 pub mod requests;
 pub mod workspace;
 
+#[cfg(test)]
+mod tree_tests;
+
 use std::path::Path;
 
 use rusqlite::{Connection, Row};

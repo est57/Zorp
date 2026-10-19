@@ -23,6 +23,8 @@ export const useDialogsStore = defineStore("dialogs", () => {
   const current = shallowRef<DialogRequest | null>(null);
   /** Tab waiting for the user to choose where to save it. */
   const saveTabId = ref<string | null>(null);
+  /** Collection or folder whose auth is being edited. */
+  const authTarget = ref<{ kind: "collection" | "folder"; id: string } | null>(null);
 
   function prompt(title: string, label: string, value = "", confirmText = "Simpan") {
     return new Promise<string | null>((resolve) => {
@@ -40,5 +42,5 @@ export const useDialogsStore = defineStore("dialogs", () => {
     current.value = null;
   }
 
-  return { current, saveTabId, prompt, confirm, close };
+  return { current, saveTabId, authTarget, prompt, confirm, close };
 });

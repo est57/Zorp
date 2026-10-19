@@ -6,7 +6,7 @@ use crate::error::{AppError, AppResult};
 use crate::models::collection::{
     Collection, CollectionTree, Folder, MoveTarget, NodeKind, SavedRequest,
 };
-use crate::models::request::RequestSpec;
+use crate::models::request::{Auth, RequestSpec};
 use crate::state::AppState;
 
 #[tauri::command]
@@ -79,9 +79,19 @@ pub fn move_node(
     let conn = state.db()?;
     match kind {
         NodeKind::Request => requests::move_to(&conn, id, &target),
-        NodeKind::Folder => folders::move_folder(&conn, id, target.folder_id, target.sort_order),
+        NodeKind::Folder => folders::move_folder(&conn, id, &target),
         NodeKind::Collection => Err(AppError::Validation(
             "Koleksi tidak bisa dipindahkan".into(),
         )),
     }
+}
+
+#[tauri::command]
+pub fn set_node_auth(
+    state: State<'_, AppState>,
+    kind: NodeKind,
+    id: Uuid,
+    auth: Auth,
+) -> AppResult<()> {
+    collections::set_auth(&*state.db()?, kind, id, &auth)
 }

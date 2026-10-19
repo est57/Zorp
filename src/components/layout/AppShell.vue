@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
+import NodeAuthDialog from "@/components/sidebar/NodeAuthDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
 import ToastHost from "@/components/ui/ToastHost.vue";
 import { useMediaQuery } from "@/composables/useMediaQuery";
@@ -42,7 +43,21 @@ useShortcuts({
   },
 });
 
-watch(compact, (isCompact) => isCompact && layout.toggleSidebar(false), { immediate: true });
+// Close the sidebar on narrow windows and restore it when the window is widened again.
+let autoClosed = false;
+watch(
+  compact,
+  (isCompact) => {
+    if (isCompact && layout.sidebarOpen) {
+      autoClosed = true;
+      layout.toggleSidebar(false);
+    } else if (!isCompact && autoClosed) {
+      autoClosed = false;
+      layout.toggleSidebar(true);
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(async () => {
   await app.load();
@@ -79,6 +94,7 @@ onMounted(async () => {
     <StatusBar />
     <DialogHost />
     <SaveRequestDialog />
+    <NodeAuthDialog />
     <ToastHost />
   </div>
 </template>

@@ -5,7 +5,17 @@ import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
 import { useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
+import { type DropZone, orderAtEnd, orderNextTo } from "@/utils/order";
 import { newId, newRequest } from "@/utils/request";
+
+export interface DropTarget {
+  kind: NodeKind;
+  id: string;
+  collectionId: string;
+  /** Folder containing the target row; null at collection root. */
+  parentId: string | null;
+  zone: DropZone;
+}
 
 export interface DragItem {
   kind: Exclude<NodeKind, "collection">;
@@ -65,24 +75,49 @@ export function useTreeActions() {
     if (ok) await toasts.guard(() => collections.remove(kind, id));
   }
 
-  /** Moves the dragged node into a collection or folder, after its existing children. */
-  async function dropInto(collectionId: string, folderId: string | null) {
+  function siblingsOf(
+    kind: DragItem["kind"],
+    collectionId: string,
+    folderId: string | null,
+    exclude: string,
+  ) {
+    const list =
+      kind === "folder"
+        ? collections
+            .foldersOf(collectionId, folderId)
+            .map((f) => ({ id: f.id, sortOrder: f.sortOrder }))
+        : collections
+            .requestsOf(collectionId, folderId)
+            .map((r) => ({ id: r.spec.id, sortOrder: r.sortOrder }));
+    return list.filter((s) => s.id !== exclude).sort((x, y) => x.sortOrder - y.sortOrder);
+  }
+
+  /** Resolves where the dragged node lands relative to the row it was dropped on. */
+  async function drop(target: DropTarget) {
     const item = dragging.value;
     dragging.value = null;
-    if (!item || item.id === folderId) return;
-    if (item.kind === "folder" && item.collectionId !== collectionId) {
-      toasts.push("Folder hanya bisa dipindahkan di dalam koleksi yang sama", "danger");
-      return;
-    }
-    const siblings =
-      item.kind === "folder"
-        ? collections.foldersOf(collectionId, folderId)
-        : collections.requestsOf(collectionId, folderId);
-    const sortOrder = Math.max(0, ...siblings.map((s) => s.sortOrder)) + 1;
+    if (!item || item.id === target.id) return;
+
+    const intoTarget =
+      target.kind === "collection" ||
+      target.zone === "inside" ||
+      (target.kind === "folder" && item.kind === "request");
+    const folderId = target.kind === "collection" ? null : intoTarget ? target.id : target.parentId;
+    const siblings = siblingsOf(item.kind, target.collectionId, folderId, item.id);
+    const sameKind = (target.kind === "folder") === (item.kind === "folder");
+    const sortOrder =
+      intoTarget || !sameKind || target.zone === "inside"
+        ? orderAtEnd(siblings)
+        : orderNextTo(siblings, target.id, target.zone);
+
     await toasts.guard(() =>
-      collections.move(item.kind, item.id, { collectionId, folderId, sortOrder }),
+      collections.move(item.kind, item.id, {
+        collectionId: target.collectionId,
+        folderId,
+        sortOrder,
+      }),
     );
   }
 
-  return { dragging, newCollection, newFolder, newRequestIn, duplicate, rename, remove, dropInto };
+  return { dragging, newCollection, newFolder, newRequestIn, duplicate, rename, remove, drop };
 }

@@ -43,6 +43,7 @@ pub fn run() {
             commands::collections::rename_node,
             commands::collections::delete_node,
             commands::collections::move_node,
+            commands::collections::set_node_auth,
             commands::environments::list_environments,
             commands::environments::save_environment,
             commands::environments::delete_environment,

@@ -171,14 +171,4 @@ mod tests {
         collections::delete_collection(&conn, col.id).unwrap();
         assert!(list(&conn, ws).unwrap().is_empty());
     }
-
-    #[test]
-    fn folder_cannot_move_into_itself() {
-        let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
-        let col = collections::create_collection(&conn, ws, "API").unwrap();
-        let parent = crate::db::folders::create_folder(&conn, col.id, None, "A").unwrap();
-        let child = crate::db::folders::create_folder(&conn, col.id, Some(parent.id), "B").unwrap();
-        assert!(crate::db::folders::move_folder(&conn, parent.id, Some(child.id), 1.0).is_err());
-    }
 }

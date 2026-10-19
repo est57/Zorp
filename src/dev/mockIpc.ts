@@ -79,11 +79,28 @@ export function installMockBackend() {
       case "app_info":
         return { version: "0.1.0", schemaVersion: 1, workspace };
       case "list_tree":
-        return tree;
+        return structuredClone(tree);
       case "list_environments":
         return [env];
       case "list_history":
         return { items: history, nextCursor: null };
+      case "set_node_auth": {
+        const node = [...tree.collections, ...tree.folders].find((n) => n.id === a.id);
+        if (node) node.auth = a.auth as never;
+        return null;
+      }
+      case "move_node": {
+        const t = a.target as { collectionId: string; folderId: string | null; sortOrder: number };
+        const node =
+          a.kind === "folder"
+            ? tree.folders.find((f) => f.id === a.id)
+            : tree.requests.find((r) => r.spec.id === a.id);
+        if (node && "parentId" in node)
+          Object.assign(node, { collectionId: t.collectionId, parentId: t.folderId });
+        else if (node) Object.assign(node, { collectionId: t.collectionId, folderId: t.folderId });
+        if (node) node.sortOrder = t.sortOrder;
+        return null;
+      }
       case "set_active_environment":
       case "plugin:event|listen":
         return null;

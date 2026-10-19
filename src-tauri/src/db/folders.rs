@@ -3,8 +3,8 @@ use uuid::Uuid;
 
 use super::collections::auth_from;
 use super::{ensure_changed, opt_uuid_at, uuid_at, validate_name};
-use crate::error::AppResult;
-use crate::models::collection::Folder;
+use crate::error::{AppError, AppResult};
+use crate::models::collection::{Folder, MoveTarget};
 
 pub fn list_folders(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Folder>> {
     let mut stmt = conn.prepare(
@@ -73,25 +73,52 @@ pub fn delete_folder(conn: &Connection, id: Uuid) -> AppResult<()> {
     ensure_changed(n, "Folder")
 }
 
-/// Moves a folder; folders keep their collection, so only the parent and order change.
-pub fn move_folder(
-    conn: &Connection,
-    id: Uuid,
-    parent_id: Option<Uuid>,
-    sort_order: f64,
-) -> AppResult<()> {
-    if let Some(parent) = parent_id
-        && is_descendant(conn, parent, id)?
-    {
-        return Err(crate::error::AppError::Validation(
-            "Folder tidak bisa dipindahkan ke dalam dirinya sendiri".into(),
-        ));
+/// Moves a folder with all nested folders and requests, possibly into another collection.
+pub fn move_folder(conn: &Connection, id: Uuid, target: &MoveTarget) -> AppResult<()> {
+    if let Some(parent) = target.folder_id {
+        if is_descendant(conn, parent, id)? {
+            return Err(AppError::Validation(
+                "Folder tidak bisa dipindahkan ke dalam dirinya sendiri".into(),
+            ));
+        }
+        let parent_collection: Option<String> = conn
+            .query_row(
+                "SELECT collection_id FROM folders WHERE id = ?1",
+                [parent.to_string()],
+                |row| row.get(0),
+            )
+            .optional()?;
+        if parent_collection != Some(target.collection_id.to_string()) {
+            return Err(AppError::Validation(
+                "Folder tujuan tidak ada di koleksi tersebut".into(),
+            ));
+        }
     }
-    let n = conn.execute(
+
+    let tx = conn.unchecked_transaction()?;
+    let n = tx.execute(
         "UPDATE folders SET parent_id = ?1, sort_order = ?2 WHERE id = ?3",
-        params![parent_id.map(|p| p.to_string()), sort_order, id.to_string()],
+        params![
+            target.folder_id.map(|p| p.to_string()),
+            target.sort_order,
+            id.to_string()
+        ],
     )?;
-    ensure_changed(n, "Folder")
+    ensure_changed(n, "Folder")?;
+    tx.execute(
+        "WITH RECURSIVE subtree(id) AS (
+           SELECT ?1 UNION ALL SELECT f.id FROM folders f JOIN subtree s ON f.parent_id = s.id)
+         UPDATE folders SET collection_id = ?2 WHERE id IN subtree",
+        params![id.to_string(), target.collection_id.to_string()],
+    )?;
+    tx.execute(
+        "WITH RECURSIVE subtree(id) AS (
+           SELECT ?1 UNION ALL SELECT f.id FROM folders f JOIN subtree s ON f.parent_id = s.id)
+         UPDATE requests SET collection_id = ?2 WHERE folder_id IN subtree",
+        params![id.to_string(), target.collection_id.to_string()],
+    )?;
+    tx.commit()?;
+    Ok(())
 }
 
 fn is_descendant(conn: &Connection, candidate: Uuid, ancestor: Uuid) -> AppResult<bool> {

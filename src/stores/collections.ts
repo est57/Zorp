@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import type { Auth } from "@/bindings/Auth";
 import type { CollectionTree } from "@/bindings/CollectionTree";
 import type { MoveTarget } from "@/bindings/MoveTarget";
 import type { NodeKind } from "@/bindings/NodeKind";
@@ -14,11 +15,18 @@ export const useCollectionsStore = defineStore("collections", () => {
   const tree = ref<CollectionTree>(EMPTY);
   const expanded = ref(new Set<string>());
 
+  const bySortOrder = (a: { sortOrder: number }, b: { sortOrder: number }) =>
+    a.sortOrder - b.sortOrder;
+
   const foldersOf = (collectionId: string, parentId: string | null) =>
-    tree.value.folders.filter((f) => f.collectionId === collectionId && f.parentId === parentId);
+    tree.value.folders
+      .filter((f) => f.collectionId === collectionId && f.parentId === parentId)
+      .sort(bySortOrder);
 
   const requestsOf = (collectionId: string, folderId: string | null) =>
-    tree.value.requests.filter((r) => r.collectionId === collectionId && r.folderId === folderId);
+    tree.value.requests
+      .filter((r) => r.collectionId === collectionId && r.folderId === folderId)
+      .sort(bySortOrder);
 
   const isEmpty = computed(() => tree.value.collections.length === 0);
 
@@ -70,6 +78,11 @@ export const useCollectionsStore = defineStore("collections", () => {
     await load();
   }
 
+  async function setAuth(kind: NodeKind, id: string, auth: Auth) {
+    await api.setNodeAuth(kind, id, auth);
+    await load();
+  }
+
   return {
     tree,
     expanded,
@@ -84,5 +97,6 @@ export const useCollectionsStore = defineStore("collections", () => {
     rename,
     remove,
     move,
+    setAuth,
   };
 });

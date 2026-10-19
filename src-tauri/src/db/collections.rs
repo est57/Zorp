@@ -4,7 +4,7 @@ use uuid::Uuid;
 use super::folders::folder_parent;
 use super::{ensure_changed, uuid_at, validate_name};
 use crate::error::AppResult;
-use crate::models::collection::Collection;
+use crate::models::collection::{Collection, NodeKind};
 use crate::models::request::Auth;
 
 pub(super) fn auth_from(json: Option<String>) -> Option<Auth> {
@@ -86,7 +86,9 @@ pub fn inherited_auth(
             )
             .optional()?
             .flatten();
-        if let Some(auth) = auth_from(auth) {
+        if let Some(auth) = auth_from(auth)
+            && !matches!(auth, Auth::Inherit)
+        {
             return Ok(Some(auth));
         }
         current = folder_parent(conn, id)?;
@@ -100,4 +102,26 @@ pub fn inherited_auth(
         .optional()?
         .flatten();
     Ok(auth_from(auth))
+}
+
+/// Stores auth for a collection or folder; `Inherit` (and `None` on collections) clears it.
+pub fn set_auth(conn: &Connection, kind: NodeKind, id: Uuid, auth: &Auth) -> AppResult<()> {
+    let clear = matches!(auth, Auth::Inherit)
+        || (matches!(kind, NodeKind::Collection) && matches!(auth, Auth::None));
+    let json = if clear {
+        None
+    } else {
+        Some(serde_json::to_string(auth)?)
+    };
+    let sql = match kind {
+        NodeKind::Collection => "UPDATE collections SET auth_json = ?1 WHERE id = ?2",
+        NodeKind::Folder => "UPDATE folders SET auth_json = ?1 WHERE id = ?2",
+        NodeKind::Request => {
+            return Err(crate::error::AppError::Validation(
+                "Auth request diatur di editor request".into(),
+            ));
+        }
+    };
+    let n = conn.execute(sql, params![json, id.to_string()])?;
+    ensure_changed(n, "Koleksi atau folder")
 }
