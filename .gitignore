@@ -27,7 +27,22 @@ dist-ssr
 src-tauri/target
 src-tauri/gen/schemas
 
-# Local planning and assistant notes
+# Local planning, design prototypes and assistant notes
 implementation.md
 design.md
+design-mockup.html
 CLAUDE.md
+CLAUDE.local.md
+.claude/settings.local.json
+
+# Secrets and local data
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+
+# Test output
+coverage
