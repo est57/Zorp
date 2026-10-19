@@ -19,6 +19,7 @@ const open = defineModel<boolean>("open", { required: true });
       <DialogContent
         class="fixed top-[12vh] left-1/2 z-50 grid max-h-[76vh] w-[calc(100vw-32px)] -translate-x-1/2 grid-rows-[auto_minmax(0,1fr)] gap-4 rounded-[10px] border border-line bg-surface p-5 text-fg shadow-float"
         :class="wide ? 'max-w-2xl' : 'max-w-md'"
+        v-bind="description ? {} : { 'aria-describedby': undefined }"
       >
         <header class="grid gap-1">
           <DialogTitle class="text-base font-semibold">{{ title }}</DialogTitle>

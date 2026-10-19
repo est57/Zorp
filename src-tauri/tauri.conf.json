@@ -36,6 +36,14 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "category": "DeveloperTool",
+    "shortDescription": "Klien API desktop yang ringan",
+    "longDescription": "Zorp adalah klien API desktop untuk menyusun, mengirim, dan menguji request HTTP, dengan koleksi, environment, OAuth 2.0, script, dan collection runner.",
+    "copyright": "Copyright 2026 Zorp",
+    "homepage": "https://github.com/est57/Zorp",
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }
