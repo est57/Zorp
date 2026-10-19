@@ -2,6 +2,7 @@
 name = "zorp"
 version = "0.1.0"
 description = "Desktop API client"
+license = "MIT"
 authors = ["Zorp"]
 edition = "2024"
 

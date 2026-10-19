@@ -102,3 +102,7 @@ src-tauri/           Backend Rust
    git tag v0.1.0 && git push origin v0.1.0
    ```
 3. Workflow **Release** akan membuat installer untuk macOS, Windows, dan Linux sebagai draft release. Periksa draft tersebut, lalu terbitkan.
+
+## Lisensi
+
+Zorp dirilis di bawah [lisensi MIT](LICENSE).
