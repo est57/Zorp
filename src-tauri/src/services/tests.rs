@@ -55,7 +55,8 @@ async fn sends_params_headers_auth_and_json_body() {
         .mount(&server)
         .await;
 
-    let mut req = spec(HttpMethod::Post, "{{base}}/users");
+    // Mirrors the UI: the URL holds enabled params and the params list repeats them.
+    let mut req = spec(HttpMethod::Post, "{{base}}/users?page=2");
     req.params = vec![kv("page", "2", true), kv("skip", "x", false)];
     req.auth = Auth::Bearer {
         token: "{{token}}".into(),
@@ -71,6 +72,12 @@ async fn sends_params_headers_auth_and_json_body() {
 
     let res = send(&req, vars).await.unwrap();
     assert_eq!(res.status, 201);
+    let received = server.received_requests().await.unwrap();
+    assert_eq!(
+        received[0].url.query(),
+        Some("page=2"),
+        "query params must not be duplicated"
+    );
     assert!(matches!(res.body, ResponseBody::Text { ref text } if text == r#"{"id":1}"#));
 }
 

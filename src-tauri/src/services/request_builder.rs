@@ -96,12 +96,10 @@ fn apply_body(
 
 /// Builds a ready-to-send request from an already resolved spec.
 pub fn build(client: &Client, spec: &RequestSpec, auth: &Auth) -> AppResult<RequestBuilder> {
+    // The URL already carries every enabled query param; `spec.params` only mirrors it for editing.
     let mut url = parse_url(&spec.url)?;
     {
         let mut query = url.query_pairs_mut();
-        for p in &spec.params {
-            query.append_pair(&p.key, &p.value);
-        }
         if let Auth::ApiKey {
             key,
             value,
