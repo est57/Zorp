@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { Auth } from "@/bindings/Auth";
 import VariableInput from "@/components/ui/VariableInput.vue";
+import OAuth2Fields from "./OAuth2Fields.vue";
 import { inputClass, selectClass } from "@/components/ui/styles";
 
-const props = withDefaults(defineProps<{ inheritLabel?: string; idPrefix?: string }>(), {
-  inheritLabel: "",
-  idPrefix: "auth",
-});
+const props = withDefaults(
+  defineProps<{ inheritLabel?: string; idPrefix?: string; collectionId?: string | null }>(),
+  { inheritLabel: "", idPrefix: "auth", collectionId: null },
+);
 const auth = defineModel<Auth>({ required: true });
 
 const options: { type: Auth["type"]; label: string }[] = [
@@ -15,6 +16,7 @@ const options: { type: Auth["type"]; label: string }[] = [
   { type: "bearer", label: "Bearer token" },
   { type: "basic", label: "Basic auth" },
   { type: "api_key", label: "API key" },
+  { type: "oauth2", label: "OAuth 2.0" },
 ];
 
 function setType(type: Auth["type"]) {
@@ -24,6 +26,19 @@ function setType(type: Auth["type"]) {
     bearer: { type: "bearer", token: "" },
     basic: { type: "basic", username: "", password: "" },
     api_key: { type: "api_key", key: "X-API-Key", value: "", location: "header" },
+    oauth2: {
+      type: "oauth2",
+      grant: "authorization_code",
+      authUrl: "",
+      tokenUrl: "",
+      clientId: "",
+      clientSecret: "",
+      scope: "",
+      usePkce: true,
+      clientAuth: "basic",
+      callbackPort: 0,
+      tokenKey: crypto.randomUUID(),
+    },
   };
   auth.value = defaults[type];
 }
@@ -78,6 +93,13 @@ const field = "flex h-7 min-w-0 rounded border border-line bg-bg focus-within:bo
         <option value="query">Query param</option>
       </select>
     </template>
+
+    <OAuth2Fields
+      v-else-if="auth.type === 'oauth2'"
+      :model-value="auth"
+      :collection-id="collectionId"
+      :id-prefix="idPrefix"
+    />
 
     <p v-if="auth.type !== 'none' && auth.type !== 'inherit'" class="col-span-full text-muted">
       Simpan kredensial sebagai variabel rahasia di environment, lalu rujuk dengan

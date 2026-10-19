@@ -1,5 +1,6 @@
 use serde_json::Value;
 
+use crate::models::oauth::{ClientAuth, OAuth2Config, OAuthGrant};
 use crate::models::request::{ApiKeyLocation, Auth, KeyValue};
 
 pub fn str_of<'a>(value: &'a Value, key: &str) -> &'a str {
@@ -71,6 +72,7 @@ pub fn parse_auth(value: Option<&Value>, warnings: &mut Vec<String>, owner: &str
                 ApiKeyLocation::Header
             },
         },
+        "oauth2" => return oauth2(value.get("oauth2"), warnings, owner),
         "" => return None,
         other => {
             warnings.push(format!(
@@ -90,4 +92,34 @@ pub fn parse_url(value: Option<&Value>) -> (String, Vec<KeyValue>) {
         }
         _ => (String::new(), Vec::new()),
     }
+}
+
+fn oauth2(params: Option<&Value>, warnings: &mut Vec<String>, owner: &str) -> Option<Auth> {
+    let get = |key: &str| auth_param(params, key);
+    let grant = match get("grant_type").as_str() {
+        "client_credentials" => OAuthGrant::ClientCredentials,
+        "" | "authorization_code" | "authorization_code_with_pkce" => OAuthGrant::AuthorizationCode,
+        other => {
+            warnings.push(format!(
+                "{owner}: grant OAuth {other} belum didukung, diganti tanpa auth"
+            ));
+            return Some(Auth::None);
+        }
+    };
+    Some(Auth::OAuth2(OAuth2Config {
+        grant,
+        auth_url: get("authUrl"),
+        token_url: get("accessTokenUrl"),
+        client_id: get("clientId"),
+        client_secret: get("clientSecret"),
+        scope: get("scope"),
+        use_pkce: true,
+        client_auth: if get("client_authentication") == "body" {
+            ClientAuth::Body
+        } else {
+            ClientAuth::Basic
+        },
+        callback_port: 0,
+        token_key: uuid::Uuid::now_v7().to_string(),
+    }))
 }

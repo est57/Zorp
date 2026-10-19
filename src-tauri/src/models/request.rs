@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
 
+use super::oauth::OAuth2Config;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "UPPERCASE")]
 #[ts(export)]
@@ -83,6 +85,8 @@ pub enum Auth {
         value: String,
         location: ApiKeyLocation,
     },
+    #[serde(rename = "oauth2")]
+    OAuth2(OAuth2Config),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

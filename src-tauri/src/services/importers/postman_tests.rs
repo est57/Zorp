@@ -31,7 +31,7 @@ const SAMPLE: &str = r#"{
       "name": "Upload",
       "request": {
         "method": "PUT",
-        "auth": { "type": "oauth2" },
+        "auth": { "type": "digest" },
         "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "/tmp/a.png" }, { "key": "note", "value": "hi", "type": "text" }] },
         "url": "{{base_url}}/upload"
       }
@@ -85,6 +85,24 @@ fn unsupported_auth_is_reported_and_string_requests_work() {
     };
     assert_eq!(ping.url, "{{base_url}}/ping");
     assert_eq!(ping.method, HttpMethod::Get);
+}
+
+#[test]
+fn maps_oauth2_client_credentials() {
+    let json = r#"{"info":{"name":"O","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
+        "auth":{"type":"oauth2","oauth2":[{"key":"grant_type","value":"client_credentials"},
+        {"key":"accessTokenUrl","value":"https://id.test/token"},{"key":"clientId","value":"abc"},
+        {"key":"client_authentication","value":"body"}]},"item":[]}"#;
+    let parsed = parse(json).unwrap();
+    let Some(Auth::OAuth2(config)) = parsed.auth else {
+        panic!("expected oauth2")
+    };
+    assert_eq!(
+        config.grant,
+        crate::models::oauth::OAuthGrant::ClientCredentials
+    );
+    assert_eq!(config.token_url, "https://id.test/token");
+    assert_eq!(config.client_auth, crate::models::oauth::ClientAuth::Body);
 }
 
 #[test]

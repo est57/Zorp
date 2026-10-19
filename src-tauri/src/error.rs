@@ -25,6 +25,8 @@ pub enum AppError {
     Network { kind: ErrorKind, message: String },
     #[error("Request dibatalkan")]
     Cancelled,
+    #[error("{0}")]
+    OAuth(String),
     #[error("Gagal mengakses keychain: {0}")]
     Secret(String),
     #[error("{0}")]
@@ -48,6 +50,8 @@ pub enum ErrorKind {
     Network,
     Cancelled,
     Secret,
+    #[serde(rename = "oauth")]
+    OAuth,
     Internal,
 }
 
@@ -71,6 +75,7 @@ impl AppError {
             Self::UnresolvedVariables(_) => ErrorKind::UnresolvedVariable,
             Self::Network { kind, .. } => *kind,
             Self::Cancelled => ErrorKind::Cancelled,
+            Self::OAuth(_) => ErrorKind::OAuth,
             Self::Secret(_) => ErrorKind::Secret,
             Self::Internal(_) => ErrorKind::Internal,
         }

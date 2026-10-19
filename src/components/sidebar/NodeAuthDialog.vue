@@ -23,6 +23,12 @@ const node = computed(() => {
   return list.find((n) => n.id === target.id) ?? null;
 });
 const isFolder = computed(() => dialogs.authTarget?.kind === "folder");
+const collectionId = computed(() => {
+  const target = dialogs.authTarget;
+  if (!target) return null;
+  if (target.kind === "collection") return target.id;
+  return collections.tree.folders.find((f) => f.id === target.id)?.collectionId ?? null;
+});
 const open = computed({
   get: () => node.value !== null,
   set: (v) => !v && (dialogs.authTarget = null),
@@ -59,6 +65,7 @@ async function save() {
       <AuthForm
         v-model="auth"
         id-prefix="node-auth"
+        :collection-id="collectionId"
         :inherit-label="isFolder ? 'Ikuti koleksi atau folder induk' : ''"
       />
       <div class="flex justify-end gap-2">

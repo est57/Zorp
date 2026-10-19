@@ -8,7 +8,7 @@ import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
 
-const props = defineProps<{ spec: RequestSpec }>();
+const props = defineProps<{ spec: RequestSpec; collectionId: string | null }>();
 
 const section = ref(props.spec.body.type !== "none" ? "body" : "params");
 const count = (rows: { enabled: boolean; key: string }[]) =>
@@ -50,6 +50,7 @@ function setParams(rows: RequestSpec["params"]) {
         v-else-if="section === 'auth'"
         v-model="spec.auth"
         inherit-label="Ikuti folder atau koleksi"
+        :collection-id="collectionId"
       />
       <SettingsPanel v-else :spec="spec" />
     </div>

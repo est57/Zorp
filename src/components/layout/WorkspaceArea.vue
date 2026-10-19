@@ -33,7 +33,9 @@ defineExpose({ focusUrl: () => urlBar.value?.focus() });
     />
     <div class="border-t border-line" />
     <SplitPane>
-      <template #top><RequestEditor :spec="tabs.active.draft" /></template>
+      <template #top
+        ><RequestEditor :spec="tabs.active.draft" :collection-id="tabs.active.collectionId"
+      /></template>
       <template #bottom><ResponsePanel :run="runner.get(tabs.active.id)" /></template>
     </SplitPane>
   </div>

@@ -36,6 +36,8 @@ export function toSnippetRequest(
   if (auth.type === "bearer") headers.push(["Authorization", `Bearer ${r1(auth.token)}`]);
   if (auth.type === "basic")
     headers.push(["Authorization", `Basic ${base64(`${r1(auth.username)}:${r1(auth.password)}`)}`]);
+  // OAuth tokens live in the keychain and are never written into snippets.
+  if (auth.type === "oauth2") headers.push(["Authorization", "Bearer <access_token>"]);
   if (auth.type === "api_key" && auth.location === "header")
     headers.push([r1(auth.key), r1(auth.value)]);
   if (auth.type === "api_key" && auth.location === "query") {

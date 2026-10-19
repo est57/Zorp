@@ -16,6 +16,7 @@ const DB_FILE: &str = "zorp.db";
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&data_dir)?;
@@ -51,6 +52,10 @@ pub fn run() {
             commands::history::list_history,
             commands::history::clear_history,
             commands::import::import_postman,
+            commands::oauth::oauth_get_token,
+            commands::oauth::oauth_cancel,
+            commands::oauth::oauth_token_status,
+            commands::oauth::oauth_clear_token,
         ])
         .run(tauri::generate_context!())
         .expect("failed to start Zorp");

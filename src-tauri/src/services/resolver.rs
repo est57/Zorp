@@ -134,6 +134,7 @@ fn resolve_auth(vars: &Variables, auth: &Auth, missing: &mut BTreeSet<String>) -
             value: vars.resolve(value, missing),
             location: *location,
         },
+        // OAuth settings are resolved separately when the token is requested.
         other => other.clone(),
     }
 }
