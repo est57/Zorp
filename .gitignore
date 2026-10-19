@@ -26,3 +26,8 @@ dist-ssr
 # Rust
 src-tauri/target
 src-tauri/gen/schemas
+
+# Local planning and assistant notes
+implementation.md
+design.md
+CLAUDE.md
