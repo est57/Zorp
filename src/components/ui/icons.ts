@@ -1,0 +1,28 @@
+export const icons = {
+  folder: "M2 4.5h4l1.5 1.5H14v6.5H2z",
+  history: "M8 2.5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11zM8 5v3l2 1.5",
+  layers: "M3 3h10v4H3zM3 9h10v4H3zM5.5 5h.01M5.5 11h.01",
+  settings:
+    "M8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4",
+  search: "M7 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zM10.5 10.5l3 3",
+  plus: "M8 3v10M3 8h10",
+  chevronDown: "M4 6l4 4 4-4",
+  sidebar: "M2.5 3h11v10h-11zM6 3v10",
+  sun: "M8 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1",
+  moon: "M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z",
+  monitor: "M2 3h12v8H2zM6 14h4M8 11v3",
+  send: "M2.5 8h9M8 4.5 11.5 8 8 11.5",
+  x: "M4 4l8 8M12 4l-8 8",
+  trash: "M3 4.5h10M6.5 4.5V3h3v1.5M4.5 4.5l.5 8.5h6l.5-8.5",
+  pencil: "M10.5 2.5l3 3-7.5 7.5H3v-3z",
+  copy: "M5.5 5.5h8v8h-8zM3 10.5V2.5h7.5",
+  more: "M3.5 8h.01M8 8h.01M12.5 8h.01",
+  file: "M4 1.5h5l3 3v10H4zM9 1.5v3h3",
+  folderPlus: "M2 4.5h4l1.5 1.5H14v6.5H2zM8 8v3M6.5 9.5h3",
+  chevronRight: "M6 4l4 4-4 4",
+  lock: "M4 7.5h8v6H4zM5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5",
+  list: "M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.01M2.5 8h.01M2.5 12h.01",
+  save: "M3 2.5h8l2.5 2.5v8.5H3zM5.5 2.5v3h4v-3M5 13.5V9.5h6v4",
+} as const;
+
+export type IconName = keyof typeof icons;
