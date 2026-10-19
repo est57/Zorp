@@ -8,7 +8,7 @@ const tabs = useTabsStore();
 const shortcuts = [
   { label: "Kirim request", keys: [modKey, "Enter"] },
   { label: "Request baru", keys: [modKey, "T"] },
-  { label: "Cari", keys: [modKey, "K"] },
+  { label: "Command palette", keys: [modKey, "K"] },
   { label: "Sidebar", keys: [modKey, "B"] },
 ];
 </script>

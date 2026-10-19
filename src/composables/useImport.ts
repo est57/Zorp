@@ -1,0 +1,31 @@
+import { open } from "@tauri-apps/plugin-dialog";
+import { importPostman } from "@/api/importers";
+import { useCollectionsStore } from "@/stores/collections";
+import { useToastsStore } from "@/stores/toasts";
+
+export function useImport() {
+  const collections = useCollectionsStore();
+  const toasts = useToastsStore();
+
+  async function fromPostman() {
+    const path = await open({
+      multiple: false,
+      filters: [{ name: "Koleksi Postman", extensions: ["json"] }],
+    });
+    if (typeof path !== "string") return;
+    const report = await toasts.guard(() => importPostman(path));
+    if (!report) return;
+    collections.toggle(report.collectionId, true);
+    await collections.load();
+    toasts.push(
+      `"${report.collectionName}" diimpor: ${report.requests} request, ${report.folders} folder`,
+      "success",
+    );
+    if (report.warnings.length) {
+      const more = report.warnings.length > 1 ? ` (dan ${report.warnings.length - 1} lainnya)` : "";
+      toasts.push(`${report.warnings[0]}${more}`, "danger");
+    }
+  }
+
+  return { fromPostman };
+}

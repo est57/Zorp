@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
+import CommandPalette from "@/components/palette/CommandPalette.vue";
 import CodeSnippetDialog from "@/components/request/CodeSnippetDialog.vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
 import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
@@ -12,6 +13,7 @@ import { useShortcuts } from "@/composables/useShortcuts";
 import { useTheme } from "@/composables/useTheme";
 import { useAppStore } from "@/stores/app";
 import { useCollectionsStore } from "@/stores/collections";
+import { useDialogsStore } from "@/stores/dialogs";
 import { useEnvironmentsStore } from "@/stores/environments";
 import { useHistoryStore } from "@/stores/history";
 import { useLayoutStore } from "@/stores/layout";
@@ -27,6 +29,7 @@ const app = useAppStore();
 const layout = useLayoutStore();
 const tabs = useTabsStore();
 const actions = useRequestActions();
+const dialogs = useDialogsStore();
 const compact = useMediaQuery("(max-width: 1099px)");
 const workspace = ref<InstanceType<typeof WorkspaceArea>>();
 const sidebar = ref<InstanceType<typeof SideBar>>();
@@ -39,7 +42,9 @@ useShortcuts({
   "mod+s": () => tabs.active && actions.save(tabs.active),
   "mod+w": () => tabs.active && actions.close(tabs.active),
   "mod+l": () => workspace.value?.focusUrl(),
-  "mod+k": () => {
+  "mod+k": () => (dialogs.palette = dialogs.palette ? null : "all"),
+  "mod+e": () => (dialogs.palette = "environments"),
+  "mod+shift+f": () => {
     layout.toggleSidebar(true);
     requestAnimationFrame(() => sidebar.value?.focusSearch());
   },
@@ -99,6 +104,7 @@ onMounted(async () => {
     <NodeAuthDialog />
     <CodeSnippetDialog />
     <ImportCurlDialog />
+    <CommandPalette />
     <ToastHost />
   </div>
 </template>

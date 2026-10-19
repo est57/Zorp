@@ -54,7 +54,7 @@ defineExpose({ focusSearch: () => search.value?.focus() });
           aria-label="Cari"
           class="min-w-0 flex-1 bg-transparent text-fg outline-none placeholder:text-subtle"
         />
-        <kbd class="font-mono text-[11px]">{{ modKey }}K</kbd>
+        <kbd class="font-mono text-[11px]">{{ modKey }}⇧F</kbd>
       </label>
     </div>
     <div class="min-h-0 flex-1 overflow-y-auto">

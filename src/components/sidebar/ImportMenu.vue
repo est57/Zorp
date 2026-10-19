@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { open } from "@tauri-apps/plugin-dialog";
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -7,35 +6,12 @@ import {
   DropdownMenuRoot,
   DropdownMenuTrigger,
 } from "reka-ui";
-import { importPostman } from "@/api/importers";
 import AppIcon from "@/components/ui/AppIcon.vue";
-import { useCollectionsStore } from "@/stores/collections";
+import { useImport } from "@/composables/useImport";
 import { useDialogsStore } from "@/stores/dialogs";
-import { useToastsStore } from "@/stores/toasts";
 
-const collections = useCollectionsStore();
 const dialogs = useDialogsStore();
-const toasts = useToastsStore();
-
-async function fromPostman() {
-  const path = await open({
-    multiple: false,
-    filters: [{ name: "Koleksi Postman", extensions: ["json"] }],
-  });
-  if (typeof path !== "string") return;
-  const report = await toasts.guard(() => importPostman(path));
-  if (!report) return;
-  collections.toggle(report.collectionId, true);
-  await collections.load();
-  toasts.push(
-    `"${report.collectionName}" diimpor: ${report.requests} request, ${report.folders} folder`,
-    "success",
-  );
-  if (report.warnings.length) {
-    const more = report.warnings.length > 1 ? ` (dan ${report.warnings.length - 1} lainnya)` : "";
-    toasts.push(`${report.warnings[0]}${more}`, "danger");
-  }
-}
+const { fromPostman } = useImport();
 
 const item =
   "flex h-7 cursor-default items-center gap-2 rounded px-2 outline-none data-highlighted:bg-surface-2";

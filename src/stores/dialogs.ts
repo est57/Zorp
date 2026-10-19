@@ -28,6 +28,8 @@ export const useDialogsStore = defineStore("dialogs", () => {
   /** Tab whose code snippet is shown. */
   const snippetTabId = ref<string | null>(null);
   const curlImportOpen = ref(false);
+  /** Command palette scope; null when closed. */
+  const palette = ref<"all" | "environments" | null>(null);
 
   function prompt(title: string, label: string, value = "", confirmText = "Simpan") {
     return new Promise<string | null>((resolve) => {
@@ -45,5 +47,15 @@ export const useDialogsStore = defineStore("dialogs", () => {
     current.value = null;
   }
 
-  return { current, saveTabId, authTarget, snippetTabId, curlImportOpen, prompt, confirm, close };
+  return {
+    current,
+    saveTabId,
+    authTarget,
+    snippetTabId,
+    curlImportOpen,
+    palette,
+    prompt,
+    confirm,
+    close,
+  };
 });
