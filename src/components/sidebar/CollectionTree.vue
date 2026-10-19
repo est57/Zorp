@@ -16,6 +16,11 @@ const menu = (c: Collection): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(c.id, null) },
   { label: "Folder baru", icon: "folderPlus", run: () => actions.newFolder(c.id, null) },
   {
+    label: "Jalankan",
+    icon: "send",
+    run: () => (dialogs.runnerTarget = { collectionId: c.id, folderId: null, name: c.name }),
+  },
+  {
     label: "Atur auth",
     icon: "lock",
     run: () => (dialogs.authTarget = { kind: "collection", id: c.id }),

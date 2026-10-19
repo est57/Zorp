@@ -23,6 +23,11 @@ const folderMenu = (id: string, name: string): MenuItem[] => [
     icon: "folderPlus",
     run: () => actions.newFolder(props.collectionId, id),
   },
+  {
+    label: "Jalankan",
+    icon: "send",
+    run: () => (dialogs.runnerTarget = { collectionId: props.collectionId, folderId: id, name }),
+  },
   { label: "Atur auth", icon: "lock", run: () => (dialogs.authTarget = { kind: "folder", id }) },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("folder", id, name) },
   { label: "Hapus", icon: "trash", danger: true, run: () => actions.remove("folder", id, name) },

@@ -5,6 +5,7 @@ pub mod folders;
 pub mod history;
 pub mod import;
 pub mod requests;
+pub mod run_order;
 pub mod settings;
 pub mod variables;
 pub mod workspace;

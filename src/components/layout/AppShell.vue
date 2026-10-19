@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import CommandPalette from "@/components/palette/CommandPalette.vue";
+import RunnerDialog from "@/components/runner/RunnerDialog.vue";
 import SettingsDialog from "@/components/settings/SettingsDialog.vue";
 import CodeSnippetDialog from "@/components/request/CodeSnippetDialog.vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
@@ -109,6 +110,7 @@ onMounted(async () => {
     <CommandPalette />
     <CookieManagerDialog />
     <SettingsDialog />
+    <RunnerDialog />
     <ToastHost />
   </div>
 </template>

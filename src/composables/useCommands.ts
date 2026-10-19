@@ -157,7 +157,21 @@ export function useCommands() {
     return list;
   });
 
-  const all = computed(() => [...actionsList.value, ...requests.value, ...environments.value]);
+  const runs = computed<Command[]>(() =>
+    collections.tree.collections.map((c) => ({
+      id: `run:${c.id}`,
+      group: "Aksi",
+      label: `Jalankan koleksi ${c.name}`,
+      run: () => (dialogs.runnerTarget = { collectionId: c.id, folderId: null, name: c.name }),
+    })),
+  );
+
+  const all = computed(() => [
+    ...actionsList.value,
+    ...runs.value,
+    ...requests.value,
+    ...environments.value,
+  ]);
 
   return { all, environments };
 }

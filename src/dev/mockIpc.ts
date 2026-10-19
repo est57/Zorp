@@ -124,6 +124,10 @@ export function installMockBackend() {
             hostOnly: false,
           },
         ];
+      case "run_collection":
+        return { total: 3, passed: 2, failed: 1, durationMs: 412, cancelled: false };
+      case "cancel_run":
+        return null;
       case "get_settings":
         return {
           proxy: {
