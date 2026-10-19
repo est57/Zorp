@@ -44,5 +44,6 @@ CLAUDE.local.md
 *.db-wal
 *.sqlite
 
-# Test output
+# Test output and local sample data
 coverage
+samples/
