@@ -8,8 +8,9 @@ use tokio::sync::oneshot;
 use uuid::Uuid;
 
 use crate::error::{AppError, AppResult};
+use crate::models::settings::WorkspaceSettings;
+use crate::services::client_pool::{ClientKey, ClientPool};
 use crate::services::cookies::CookieJar;
-use crate::services::http_engine;
 use crate::services::secrets::SecretStore;
 
 pub struct AppState {
@@ -18,7 +19,7 @@ pub struct AppState {
     pub secrets: Box<dyn SecretStore>,
     pub spill_dir: PathBuf,
     pub cookies: Arc<CookieJar>,
-    clients: Mutex<HashMap<(bool, bool, bool), Client>>,
+    pub pool: ClientPool,
     inflight: Mutex<HashMap<Uuid, oneshot::Sender<()>>>,
 }
 
@@ -33,6 +34,7 @@ impl AppState {
         secrets: Box<dyn SecretStore>,
         spill_dir: PathBuf,
         cookies: CookieJar,
+        settings: WorkspaceSettings,
     ) -> Self {
         Self {
             db: Mutex::new(conn),
@@ -40,7 +42,7 @@ impl AppState {
             secrets,
             spill_dir,
             cookies: Arc::new(cookies),
-            clients: Mutex::default(),
+            pool: ClientPool::new(settings),
             inflight: Mutex::default(),
         }
     }
@@ -49,22 +51,9 @@ impl AppState {
         self.db.lock().map_err(|_| poisoned())
     }
 
-    /// Returns a pooled client so connections are reused across requests.
-    pub fn client(
-        &self,
-        verify_tls: bool,
-        follow_redirects: bool,
-        use_cookies: bool,
-    ) -> AppResult<Client> {
-        let key = (verify_tls, follow_redirects, use_cookies);
-        let mut clients = self.clients.lock().map_err(|_| poisoned())?;
-        if let Some(client) = clients.get(&key) {
-            return Ok(client.clone());
-        }
-        let jar = use_cookies.then(|| self.cookies.clone());
-        let client = http_engine::new_client(verify_tls, follow_redirects, jar)?;
-        clients.insert(key, client.clone());
-        Ok(client)
+    pub fn client(&self, key: ClientKey) -> AppResult<Client> {
+        self.pool
+            .get(key, &self.cookies, self.secrets.as_ref(), self.workspace_id)
     }
 
     /// Writes the cookie jar to SQLite when it changed.

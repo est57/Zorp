@@ -1,7 +1,8 @@
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-use super::http_engine::{execute, new_client};
+use super::http_client::new_client;
+use super::http_engine::execute;
 use super::request_builder::build;
 use super::resolver::{Variables, resolve_spec};
 use crate::models::request::*;
@@ -82,4 +83,32 @@ async fn cookie_jar_sends_cookies_set_by_previous_response() {
         assert_eq!(res.status, expected, "{route}");
     }
     assert_eq!(jar.list()[0].name, "session");
+}
+
+#[tokio::test]
+async fn http_proxy_receives_requests_for_other_hosts() {
+    let proxy = MockServer::start().await;
+    Mock::given(path("/hello"))
+        .respond_with(ResponseTemplate::new(200).set_body_string("via proxy"))
+        .mount(&proxy)
+        .await;
+    let settings = crate::models::settings::ProxySettings {
+        enabled: true,
+        url: proxy.uri(),
+        ..Default::default()
+    };
+    let client = super::http_client::build_client(super::http_client::ClientOptions {
+        verify_tls: true,
+        follow_redirects: true,
+        proxy: super::network::build_proxy(&settings, None).unwrap(),
+        ..Default::default()
+    })
+    .unwrap();
+    let dir = std::env::temp_dir().join("zorp-tests");
+    // The target host does not exist; only the proxy can answer.
+    let req = spec(HttpMethod::Get, "http://zorp-proxy-target.invalid/hello");
+    let res = execute(build(&client, &req, &Auth::None).unwrap(), &dir, |_, _| {})
+        .await
+        .unwrap();
+    assert_eq!(res.status, 200);
 }

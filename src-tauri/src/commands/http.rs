@@ -6,6 +6,7 @@ use crate::db::history::NewEntry;
 use crate::error::{AppError, AppResult};
 use crate::models::request::{Auth, RequestSpec};
 use crate::models::response::{ProgressEvent, ResponseData};
+use crate::services::client_pool::ClientKey;
 use crate::services::resolver::{Variables, resolve_spec};
 use crate::services::{http_engine, oauth, request_builder};
 use crate::state::AppState;
@@ -67,15 +68,16 @@ pub async fn send_request(
 ) -> AppResult<ResponseData> {
     let (auth, vars) = effective_auth(&state, &spec)?;
     let (resolved, auth) = resolve_spec(&spec, &auth, &vars)?;
-    let client = state.client(
-        spec.settings.verify_tls,
-        spec.settings.follow_redirects,
-        spec.settings.use_cookies,
-    )?;
+    let client = state.client(ClientKey {
+        verify_tls: spec.settings.verify_tls,
+        follow_redirects: spec.settings.follow_redirects,
+        use_cookies: spec.settings.use_cookies,
+        identity: state.pool.identity_for(&resolved.url)?,
+    })?;
     let auth = match auth {
         Auth::OAuth2(config) => {
             let config = oauth::resolve_config(&config, &vars)?;
-            let token_client = state.client(true, true, false)?;
+            let token_client = state.client(ClientKey::plain())?;
             Auth::Bearer {
                 token: oauth::access_token(state.secrets.as_ref(), &token_client, &config).await?,
             }

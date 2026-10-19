@@ -5,6 +5,7 @@ pub mod folders;
 pub mod history;
 pub mod import;
 pub mod requests;
+pub mod settings;
 pub mod workspace;
 
 #[cfg(test)]
@@ -21,6 +22,7 @@ use crate::error::{AppError, AppResult};
 const MIGRATIONS_SLICE: &[M<'_>] = &[
     M::up(include_str!("../../migrations/0001_init.sql")),
     M::up(include_str!("../../migrations/0002_cookies.sql")),
+    M::up(include_str!("../../migrations/0003_settings.sql")),
 ];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;

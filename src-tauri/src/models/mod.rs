@@ -7,4 +7,5 @@ pub mod import;
 pub mod oauth;
 pub mod request;
 pub mod response;
+pub mod settings;
 pub mod workspace;

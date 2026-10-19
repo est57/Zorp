@@ -1,7 +1,8 @@
 use wiremock::matchers::{body_string, header, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-use super::http_engine::{execute, new_client};
+use super::http_client::new_client;
+use super::http_engine::execute;
 use super::request_builder::build;
 use super::resolver::{Variables, resolve_spec};
 use crate::error::AppError;

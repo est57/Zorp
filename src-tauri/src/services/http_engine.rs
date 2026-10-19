@@ -1,42 +1,15 @@
 use std::path::Path;
-use std::sync::Arc;
 use std::time::Instant;
 
 use base64::Engine;
-use reqwest::{Client, RequestBuilder, Response, redirect};
+use reqwest::{RequestBuilder, Response};
 
 use crate::error::{AppError, AppResult, ErrorKind};
 use crate::models::response::{ProgressPhase, ResponseBody, ResponseData, Timing};
-use crate::services::cookies::CookieJar;
-use crate::services::timing::{self, Phases, TimingLayer, TimingResolver};
+use crate::services::timing::{self, Phases};
 
 const INLINE_LIMIT: usize = 5 * 1024 * 1024;
 const PREVIEW_LIMIT: usize = 1024 * 1024;
-const MAX_REDIRECTS: usize = 10;
-
-pub fn new_client(
-    verify_tls: bool,
-    follow_redirects: bool,
-    jar: Option<Arc<CookieJar>>,
-) -> AppResult<Client> {
-    let policy = if follow_redirects {
-        redirect::Policy::limited(MAX_REDIRECTS)
-    } else {
-        redirect::Policy::none()
-    };
-    let mut builder = Client::builder()
-        .user_agent(concat!("Zorp/", env!("CARGO_PKG_VERSION")))
-        .redirect(policy)
-        .tls_danger_accept_invalid_certs(!verify_tls)
-        .dns_resolver(Arc::new(TimingResolver))
-        .connector_layer(TimingLayer);
-    if let Some(jar) = jar {
-        builder = builder.cookie_provider(jar);
-    }
-    builder
-        .build()
-        .map_err(|e| AppError::Internal(e.to_string()))
-}
 
 pub fn classify(error: reqwest::Error) -> AppError {
     let detail = format!("{error:?}").to_lowercase();

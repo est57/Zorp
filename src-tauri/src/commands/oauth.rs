@@ -5,6 +5,7 @@ use uuid::Uuid;
 use super::http::context_variables;
 use crate::error::{AppError, AppResult};
 use crate::models::oauth::{OAuth2Config, TokenStatus};
+use crate::services::client_pool::ClientKey;
 use crate::services::oauth::{self, token_store};
 use crate::state::AppState;
 
@@ -19,7 +20,7 @@ pub async fn oauth_get_token(
     collection_id: Option<Uuid>,
 ) -> AppResult<TokenStatus> {
     let config = oauth::resolve_config(&config, &context_variables(&state, collection_id)?)?;
-    let client = state.client(true, true, false)?;
+    let client = state.client(ClientKey::plain())?;
     state.cancel(LOGIN_FLOW_ID)?;
     let cancelled = state.register(LOGIN_FLOW_ID)?;
     let open_browser = |url: &str| {

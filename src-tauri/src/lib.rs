@@ -29,12 +29,14 @@ pub fn run() {
             let jar = db::cookies::load(&conn, workspace.id)?
                 .map(|json| CookieJar::from_json(&json))
                 .unwrap_or_default();
+            let settings = db::settings::load(&conn, workspace.id)?;
             app.manage(AppState::new(
                 conn,
                 workspace.id,
                 Box::new(KeychainStore),
                 spill_dir,
                 jar,
+                settings,
             ));
             Ok(())
         })
@@ -64,6 +66,8 @@ pub fn run() {
             commands::cookies::list_cookies,
             commands::cookies::delete_cookie,
             commands::cookies::clear_cookies,
+            commands::settings::get_settings,
+            commands::settings::save_settings,
         ])
         .run(tauri::generate_context!())
         .expect("failed to start Zorp");

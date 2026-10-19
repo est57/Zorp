@@ -124,6 +124,21 @@ export function installMockBackend() {
             hostOnly: false,
           },
         ];
+      case "get_settings":
+        return {
+          proxy: {
+            enabled: false,
+            url: "",
+            username: "",
+            password: "",
+            hasPassword: false,
+            bypass: "localhost",
+          },
+          caCertificates: [],
+          clientCertificates: [],
+        };
+      case "save_settings":
+        return a.settings;
       case "delete_cookie":
       case "clear_cookies":
       case "set_active_environment":

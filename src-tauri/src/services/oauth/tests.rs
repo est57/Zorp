@@ -4,7 +4,7 @@ use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::*;
 use crate::models::oauth::ClientAuth;
-use crate::services::http_engine::new_client;
+use crate::services::http_client::new_client;
 use crate::services::secrets::MemoryStore;
 
 fn config(server: &MockServer, grant: OAuthGrant) -> OAuth2Config {

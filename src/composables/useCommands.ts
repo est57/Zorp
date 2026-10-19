@@ -109,6 +109,12 @@ export function useCommands() {
         run: () => (dialogs.cookiesOpen = true),
       },
       {
+        id: "settings",
+        group: "Aksi",
+        label: "Pengaturan proxy dan sertifikat",
+        run: () => (dialogs.settingsOpen = true),
+      },
+      {
         id: "sidebar",
         group: "Aksi",
         label: "Tampilkan atau sembunyikan sidebar",
