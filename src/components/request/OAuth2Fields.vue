@@ -5,6 +5,7 @@ import type { TokenStatus } from "@/bindings/TokenStatus";
 import { cancelOAuth, clearOAuthToken, getOAuthToken, oauthTokenStatus } from "@/api/oauth";
 import { isTauri, toApiError } from "@/api/invoke";
 import AppButton from "@/components/ui/AppButton.vue";
+import SecretField from "@/components/ui/SecretField.vue";
 import VariableInput from "@/components/ui/VariableInput.vue";
 import { checkboxClass, inputClass, selectClass } from "@/components/ui/styles";
 import { useToastsStore } from "@/stores/toasts";
@@ -86,13 +87,11 @@ const id = (name: string) => `${props.idPrefix}-${name}`;
   <span class="label-caps">Client ID</span>
   <div :class="field"><VariableInput v-model="config.clientId" label="Client ID" /></div>
   <span class="label-caps">Client secret</span>
-  <div :class="field">
-    <VariableInput
-      v-model="config.clientSecret"
-      label="Client secret"
-      placeholder="{{client_secret}}"
-    />
-  </div>
+  <SecretField
+    v-model="config.clientSecret"
+    label="Client secret"
+    placeholder="{{client_secret}}"
+  />
   <span class="label-caps">Scope</span>
   <div :class="field">
     <VariableInput v-model="config.scope" label="Scope" placeholder="read write" />

@@ -9,7 +9,7 @@ import * as api from "@/api/collections";
 import { isTauri } from "@/api/invoke";
 import { useTabsStore } from "./tabs";
 
-const EMPTY: CollectionTree = { collections: [], folders: [], requests: [] };
+const EMPTY: CollectionTree = { collections: [], folders: [], requests: [], examples: [] };
 
 export const useCollectionsStore = defineStore("collections", () => {
   const tree = ref<CollectionTree>(EMPTY);
@@ -28,12 +28,19 @@ export const useCollectionsStore = defineStore("collections", () => {
       .filter((r) => r.collectionId === collectionId && r.folderId === folderId)
       .sort(bySortOrder);
 
+  const examplesOf = (requestId: string) =>
+    tree.value.examples.filter((e) => e.requestId === requestId);
+
   const isEmpty = computed(() => tree.value.collections.length === 0);
 
   async function load() {
     if (!isTauri()) return;
     tree.value = await api.listTree();
-    useTabsStore().syncFromTree(tree.value.requests);
+    const tabs = useTabsStore();
+    tabs.syncFromTree(tree.value.requests);
+    // Tabs of examples that were removed, here or in the workspace folder, close.
+    const known = new Set(tree.value.examples.map((e) => e.id));
+    tabs.tabs.filter((t) => t.example && !known.has(t.id)).forEach((t) => tabs.close(t.id));
   }
 
   function toggle(id: string, open = !expanded.value.has(id)) {
@@ -86,6 +93,7 @@ export const useCollectionsStore = defineStore("collections", () => {
   return {
     tree,
     expanded,
+    examplesOf,
     isEmpty,
     foldersOf,
     requestsOf,

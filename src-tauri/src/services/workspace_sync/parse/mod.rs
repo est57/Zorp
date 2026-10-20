@@ -1,14 +1,14 @@
 use std::collections::HashSet;
-use std::fs;
 use std::path::Path;
 
-use serde::de::DeserializeOwned;
 use uuid::Uuid;
 
 use super::format::{
     CollectionFile, EnvironmentFile, FORMAT_VERSION, FolderFile, RequestFile, WorkspaceFile,
 };
 use super::*;
+
+mod io;
 use crate::models::collection::{Collection, Folder, SavedRequest};
 use crate::models::environment::{Environment, Variable};
 
@@ -61,57 +61,6 @@ pub fn read(root: &Path) -> Result<Snapshot, Problems> {
 }
 
 impl Reader<'_> {
-    fn relative(&self, path: &Path) -> String {
-        path.strip_prefix(self.root)
-            .unwrap_or(path)
-            .to_string_lossy()
-            .replace('\\', "/")
-    }
-
-    /// Visible, non-link entries of a directory, sorted; `dirs` picks directories or files.
-    fn entries(&mut self, dir: &Path, dirs: bool) -> Vec<std::path::PathBuf> {
-        let Ok(read) = fs::read_dir(dir) else {
-            return Vec::new();
-        };
-        let mut out: Vec<_> = read
-            .flatten()
-            .filter(|e| !e.file_name().to_string_lossy().starts_with('.'))
-            .filter(|e| {
-                e.file_type()
-                    .is_ok_and(|t| if dirs { t.is_dir() } else { t.is_file() })
-            })
-            .map(|e| e.path())
-            .collect();
-        out.sort();
-        out
-    }
-
-    fn load<T: DeserializeOwned>(&mut self, path: &Path) -> Option<T> {
-        let name = self.relative(path);
-        self.files += 1;
-        if self.files > MAX_FILES {
-            if self.files == MAX_FILES + 1 {
-                self.problems
-                    .0
-                    .push(format!("Folder berisi lebih dari {MAX_FILES} file"));
-            }
-            return None;
-        }
-        let text = match fs::symlink_metadata(path) {
-            Ok(m) if !m.is_file() => Err("bukan file biasa".to_string()),
-            Ok(m) if m.len() > MAX_FILE_BYTES => Err("ukuran file melebihi 2 MB".to_string()),
-            Ok(_) => fs::read_to_string(path).map_err(|e| e.to_string()),
-            Err(e) => Err(e.to_string()),
-        };
-        match text.and_then(|t| serde_saphyr::from_str::<T>(&t).map_err(|e| e.to_string())) {
-            Ok(value) => Some(value),
-            Err(e) => {
-                self.problems.0.push(format!("{name}: {e}"));
-                None
-            }
-        }
-    }
-
     fn claim(&mut self, id: Uuid, name: &str, path: &Path) -> bool {
         let problem = if name.trim().is_empty() {
             "nama tidak boleh kosong".to_string()
@@ -161,8 +110,18 @@ impl Reader<'_> {
             let Some(file) = self.load::<RequestFile>(&path) else {
                 continue;
             };
-            if self.claim(file.id, &file.name, &path) {
-                let (spec, sort_order) = file.into_spec();
+            let example_ids: Vec<_> = file
+                .examples
+                .iter()
+                .map(|e| (e.id, e.name.clone()))
+                .collect();
+            if self.claim(file.id, &file.name, &path)
+                && example_ids
+                    .iter()
+                    .all(|(id, name)| self.claim(*id, name, &path))
+            {
+                let (spec, sort_order, examples) = file.into_spec();
+                self.snapshot.examples.extend(examples);
                 self.snapshot.requests.push(SavedRequest {
                     collection_id: collection,
                     folder_id: parent,

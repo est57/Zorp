@@ -1,6 +1,7 @@
 use std::collections::{BTreeSet, HashMap};
 
 use crate::error::{AppError, AppResult};
+use crate::models::auth::{AwsSigV4Config, JwtConfig, OAuth1Config};
 use crate::models::request::{Auth, Body, KeyValue, MultipartPart, RequestSpec};
 
 const MAX_DEPTH: u8 = 5;
@@ -138,7 +139,34 @@ fn resolve_auth(vars: &Variables, auth: &Auth, missing: &mut BTreeSet<String>) -
             value: vars.resolve(value, missing),
             location: *location,
         },
-        // OAuth settings are resolved separately when the token is requested.
+        Auth::Digest { username, password } => Auth::Digest {
+            username: vars.resolve(username, missing),
+            password: vars.resolve(password, missing),
+        },
+        Auth::Jwt(c) => Auth::Jwt(JwtConfig {
+            secret: vars.resolve(&c.secret, missing),
+            payload: vars.resolve(&c.payload, missing),
+            headers: vars.resolve(&c.headers, missing),
+            param: vars.resolve(&c.param, missing),
+            prefix: vars.resolve(&c.prefix, missing),
+            ..c.clone()
+        }),
+        Auth::AwsSigV4(c) => Auth::AwsSigV4(AwsSigV4Config {
+            access_key: vars.resolve(&c.access_key, missing),
+            secret_key: vars.resolve(&c.secret_key, missing),
+            session_token: vars.resolve(&c.session_token, missing),
+            region: vars.resolve(&c.region, missing),
+            service: vars.resolve(&c.service, missing),
+        }),
+        Auth::OAuth1(c) => Auth::OAuth1(OAuth1Config {
+            consumer_key: vars.resolve(&c.consumer_key, missing),
+            consumer_secret: vars.resolve(&c.consumer_secret, missing),
+            token: vars.resolve(&c.token, missing),
+            token_secret: vars.resolve(&c.token_secret, missing),
+            realm: vars.resolve(&c.realm, missing),
+            ..c.clone()
+        }),
+        // OAuth 2.0 settings are resolved separately when the token is requested.
         other => other.clone(),
     }
 }

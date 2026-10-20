@@ -2,7 +2,7 @@
 import type { ResponseData } from "@/bindings/ResponseData";
 import { formatBytes, formatDuration, statusTone } from "@/utils/format";
 
-defineProps<{ response: ResponseData }>();
+defineProps<{ response: ResponseData; example?: boolean }>();
 </script>
 
 <template>
@@ -15,6 +15,7 @@ defineProps<{ response: ResponseData }>();
       {{ response.status }} {{ response.statusText }}
     </span>
     <span
+      v-if="!example"
       class="font-mono text-muted"
       :title="`DNS ${response.timing.dnsMs ?? '-'} ms, koneksi ${response.timing.connectMs ?? '-'} ms, respons pertama ${response.timing.ttfbMs} ms, unduh ${response.timing.downloadMs} ms`"
     >
@@ -26,6 +27,8 @@ defineProps<{ response: ResponseData }>();
     <span class="font-mono text-muted">
       Ukuran <b class="font-semibold text-fg tabular-nums">{{ formatBytes(response.sizeBytes) }}</b>
     </span>
-    <span class="font-mono text-subtle max-md:hidden">{{ response.httpVersion }}</span>
+    <span v-if="!example" class="font-mono text-subtle max-md:hidden">{{
+      response.httpVersion
+    }}</span>
   </div>
 </template>

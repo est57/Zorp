@@ -9,11 +9,12 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::{CHANGED_EVENT, STATUS_EVENT, SyncEngine};
 use crate::state::AppState;
 
-const SHARED_TABLES: [&str; 5] = [
+const SHARED_TABLES: [&str; 6] = [
     "workspaces",
     "collections",
     "folders",
     "requests",
+    "request_examples",
     "environments",
 ];
 const QUIET: Duration = Duration::from_millis(300);

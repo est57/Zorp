@@ -33,6 +33,9 @@ fn params(entries: &[(&str, &str)]) -> Value {
 
 /// Postman auth object; `None` means the item inherits from its parent.
 pub fn auth(auth: &Auth) -> Option<Value> {
+    if let Some(signed) = super::signed_auth::auth(auth) {
+        return Some(signed);
+    }
     Some(match auth {
         Auth::Inherit => return None,
         Auth::None => json!({ "type": "noauth" }),
@@ -75,5 +78,6 @@ pub fn auth(auth: &Auth) -> Option<Value> {
                 ("client_authentication", client_auth),
             ]) })
         }
+        _ => return None,
     })
 }

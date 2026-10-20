@@ -1,7 +1,7 @@
 // Development-only backend mock for previewing the UI in a plain browser (?mock in the URL).
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import type { RequestSpec } from "@/bindings/RequestSpec";
-import { body, env, history, tree, workspace, workspaces } from "./mockData";
+import { body, env, examples, history, tree, workspace, workspaces } from "./mockData";
 import { handleRealtime } from "./mockRealtime";
 
 export function installMockBackend() {
@@ -18,6 +18,30 @@ export function installMockBackend() {
           return { activeId: workspace.id, workspaces };
         case "sync_status":
           return { folder: workspace.folder, problems: [] };
+        case "preview_openapi":
+          await new Promise((r) => setTimeout(r, 300));
+          return {
+            title: "Swagger Petstore",
+            version: "1.0.27",
+            format: "OpenAPI 3.0",
+            endpoints: 19,
+            groups: [
+              { name: "pet", count: 8 },
+              { name: "store", count: 4 },
+              { name: "user", count: 7 },
+            ],
+            auth: ["petstore_auth", "api_key"],
+            servers: ["https://petstore3.swagger.io/api/v3"],
+            samples: [
+              { method: "PUT", name: "Update an existing pet", group: "pet" },
+              { method: "POST", name: "Add a new pet to the store", group: "pet" },
+              { method: "GET", name: "Finds Pets by status", group: "pet" },
+            ],
+          };
+        case "get_example":
+          return examples.find((e) => e.id === a.id);
+        case "save_example":
+          return { ...(a.example as object), id: "ex-new", sortOrder: 3 };
         case "list_tree":
           return structuredClone(tree);
         case "list_environments":

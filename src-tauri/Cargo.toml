@@ -16,7 +16,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
 rusqlite = { version = "0.40.2", features = ["bundled", "hooks"] }
 rusqlite_migration = "2.6.0"
 thiserror = "2.0.21"
@@ -44,6 +44,11 @@ rustls-native-certs = "0.8"
 rustls-pki-types = { version = "1", features = ["std"] }
 serde-saphyr = "2.0.0"
 notify-debouncer-mini = "0.7.0"
+hmac = "0.13"
+sha1 = "0.11"
+md-5 = "0.11"
+hex = "0.4"
+jsonwebtoken = { version = "10", default-features = false, features = ["aws_lc_rs", "use_pem"] }
 
 [profile.release]
 codegen-units = 1

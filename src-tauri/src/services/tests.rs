@@ -11,6 +11,7 @@ use crate::models::response::ResponseBody;
 
 fn spec(method: HttpMethod, url: &str) -> RequestSpec {
     RequestSpec {
+        docs: String::new(),
         id: uuid::Uuid::now_v7(),
         name: "Test".into(),
         method,

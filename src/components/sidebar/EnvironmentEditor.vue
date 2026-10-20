@@ -82,9 +82,8 @@ async function save() {
             v-model="v.value"
             :type="v.secret ? 'password' : 'text'"
             autocomplete="off"
-            :placeholder="
-              v.secret && v.hasValue ? 'Tersimpan di keychain, isi untuk mengganti' : 'Nilai'
-            "
+            :placeholder="v.secret && v.hasValue ? 'Tersimpan di keychain' : 'Nilai'"
+            :title="v.secret && v.hasValue ? 'Isi untuk mengganti nilai yang tersimpan' : undefined"
             aria-label="Nilai variabel"
             :class="[inputClass, 'font-mono']"
           />

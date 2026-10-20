@@ -40,6 +40,8 @@ fn empty_folder_receives_data_and_outside_edits_are_read_back() {
     );
     let file = dir.path().join("collections/users/collection.yaml");
     assert!(file.is_file() && dir.path().join("zorp.yaml").is_file());
+    let ignore = fs::read_to_string(dir.path().join(".gitignore")).unwrap();
+    assert!(ignore.contains(".DS_Store"));
 
     db::collections::create_collection(&state.db().unwrap(), state.workspace_id(), "Orders")
         .unwrap();

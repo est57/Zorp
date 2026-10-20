@@ -123,7 +123,13 @@ fn render_level(
     let mut names = Names::default();
     for request in requests {
         let name = names.claim(&request.spec.name, request.spec.id);
-        let file = RequestFile::from_spec(request.spec.clone(), request.sort_order);
+        let mut examples: Vec<_> = snapshot
+            .examples
+            .iter()
+            .filter(|e| e.request_id == request.spec.id)
+            .collect();
+        examples.sort_by(|a, b| a.sort_order.total_cmp(&b.sort_order).then(a.id.cmp(&b.id)));
+        let file = RequestFile::from_spec(request.spec.clone(), request.sort_order, &examples);
         files.insert(format!("{dir}/{name}{REQUEST_SUFFIX}"), yaml(&file)?);
     }
     Ok(())

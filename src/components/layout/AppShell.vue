@@ -8,6 +8,7 @@ import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
 import CookieManagerDialog from "@/components/sidebar/CookieManagerDialog.vue";
 import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
 import NodeAuthDialog from "@/components/sidebar/NodeAuthDialog.vue";
+import OpenApiImportDialog from "@/components/sidebar/OpenApiImportDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
 import ToastHost from "@/components/ui/ToastHost.vue";
 import { useMediaQuery } from "@/composables/useMediaQuery";
@@ -20,6 +21,7 @@ import { useDialogsStore } from "@/stores/dialogs";
 import { useEnvironmentsStore } from "@/stores/environments";
 import { useHistoryStore } from "@/stores/history";
 import { useLayoutStore } from "@/stores/layout";
+import { restoreTabSession, watchTabSession } from "@/stores/tabSession";
 import { useTabsStore } from "@/stores/tabs";
 import { useUpdaterStore } from "@/stores/updater";
 import { useWorkspacesStore } from "@/stores/workspaces";
@@ -33,6 +35,7 @@ import WorkspaceArea from "./WorkspaceArea.vue";
 const app = useAppStore();
 const layout = useLayoutStore();
 const tabs = useTabsStore();
+const workspaces = useWorkspacesStore();
 const actions = useRequestActions();
 const dialogs = useDialogsStore();
 const compact = useMediaQuery("(max-width: 1099px)");
@@ -78,8 +81,13 @@ onMounted(async () => {
     useCollectionsStore().load(),
     useEnvironmentsStore().load(),
     useHistoryStore().load(),
-    useWorkspacesStore().load(),
+    workspaces.load(),
   ]);
+  if (workspaces.activeId) {
+    restoreTabSession(workspaces.activeId);
+    tabs.syncFromTree(useCollectionsStore().tree.requests);
+  }
+  watchTabSession();
   // Check quietly after startup so it never delays the first render.
   setTimeout(() => void useUpdaterStore().checkForUpdate(true), 5000);
 });
@@ -112,6 +120,7 @@ onMounted(async () => {
     <NodeAuthDialog />
     <CodeSnippetDialog />
     <ImportCurlDialog />
+    <OpenApiImportDialog />
     <CommandPalette />
     <CookieManagerDialog />
     <SettingsDialog />

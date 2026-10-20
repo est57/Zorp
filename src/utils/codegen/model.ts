@@ -48,6 +48,13 @@ export function toSnippetRequest(
     headers.push(["Authorization", `Basic ${base64(`${r1(auth.username)}:${r1(auth.password)}`)}`]);
   // OAuth tokens live in the keychain and are never written into snippets.
   if (auth.type === "oauth2") headers.push(["Authorization", "Bearer <access_token>"]);
+  // Signed auth types are computed per send, so snippets show where they go.
+  if (auth.type === "jwt" && auth.location === "header")
+    headers.push([r1(auth.param) || "Authorization", `${r1(auth.prefix)} <jwt>`.trim()]);
+  if (auth.type === "digest")
+    headers.push(["Authorization", "Digest <dihitung dari tantangan server>"]);
+  if (auth.type === "aws_sigv4") headers.push(["Authorization", "AWS4-HMAC-SHA256 <tanda tangan>"]);
+  if (auth.type === "oauth1") headers.push(["Authorization", "OAuth <tanda tangan>"]);
   if (auth.type === "api_key" && auth.location === "header")
     headers.push([r1(auth.key), r1(auth.value)]);
   if (auth.type === "api_key" && auth.location === "query") {

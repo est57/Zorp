@@ -83,7 +83,10 @@ impl SyncEngine {
                 )];
                 Ok(false)
             }
-            Some(_) => self.push(state).map(|_| false),
+            Some(root) => {
+                files::ensure_gitignore(&root)?;
+                self.push(state).map(|_| false)
+            }
             None => Ok(false),
         }
     }

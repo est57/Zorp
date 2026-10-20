@@ -9,6 +9,7 @@ import { useCollectionsStore } from "./collections";
 import { useEnvironmentsStore } from "./environments";
 import { useHistoryStore } from "./history";
 import { useRealtimeStore } from "./realtime";
+import { leaveTabSession, restoreTabSession } from "./tabSession";
 import { useTabsStore } from "./tabs";
 
 export const useWorkspacesStore = defineStore("workspaces", () => {
@@ -39,19 +40,25 @@ export const useWorkspacesStore = defineStore("workspaces", () => {
     void api.onSyncStatus((status) => (sync.value = status));
   }
 
-  /** Reloads everything that belongs to the active workspace. */
-  async function reloadData() {
+  /** Reloads everything that belongs to the active workspace and its open tabs. */
+  async function reloadData(restoreTabs = false) {
+    const collections = useCollectionsStore();
     await Promise.all([
       load(),
       useAppStore().load(),
-      useCollectionsStore().load(),
+      collections.load(),
       useEnvironmentsStore().load(),
       useHistoryStore().load(),
     ]);
+    if (restoreTabs && activeId.value) {
+      restoreTabSession(activeId.value);
+      useTabsStore().syncFromTree(collections.tree.requests);
+    }
   }
 
-  /** Closes all tabs and live connections, which belong to the workspace being left. */
+  /** Saves and closes the tabs and live connections of the workspace being left. */
   async function leave() {
+    leaveTabSession();
     const tabs = useTabsStore();
     const realtime = useRealtimeStore();
     await Promise.all(tabs.tabs.map((t) => realtime.disconnect(t.id).catch(() => undefined)));
@@ -63,19 +70,20 @@ export const useWorkspacesStore = defineStore("workspaces", () => {
     if (id === activeId.value) return;
     await api.switchWorkspace(id);
     await leave();
-    await reloadData();
+    await reloadData(true);
   }
 
   async function create(name: string) {
     await api.createWorkspace(name);
     await leave();
-    await reloadData();
+    await reloadData(true);
   }
 
   async function openFolder(path: string) {
     const workspace = await api.openFolder(path);
-    if (workspace.id !== activeId.value) await leave();
-    await reloadData();
+    const changed = workspace.id !== activeId.value;
+    if (changed) await leave();
+    await reloadData(changed);
   }
 
   async function linkFolder(path: string) {

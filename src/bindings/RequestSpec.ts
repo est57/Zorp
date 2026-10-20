@@ -7,4 +7,8 @@ import type { RequestMode } from "./RequestMode";
 import type { RequestSettings } from "./RequestSettings";
 import type { Scripts } from "./Scripts";
 
-export type RequestSpec = { id: string, name: string, method: HttpMethod, url: string, params: Array<KeyValue>, headers: Array<KeyValue>, body: Body, auth: Auth, settings: RequestSettings, scripts: Scripts, mode: RequestMode, };
+export type RequestSpec = { id: string, name: string, method: HttpMethod, url: string, params: Array<KeyValue>, headers: Array<KeyValue>, body: Body, auth: Auth, settings: RequestSettings, scripts: Scripts, mode: RequestMode, 
+/**
+ * Markdown notes shown in the Docs tab.
+ */
+docs?: string, };

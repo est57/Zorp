@@ -5,6 +5,7 @@ use uuid::Uuid;
 use super::*;
 use crate::models::collection::{Collection, Folder, SavedRequest};
 use crate::models::environment::{Environment, Variable};
+use crate::models::example::ResponseExample;
 use crate::models::request::{Auth, Body, HttpMethod, KeyValue, RequestSpec};
 
 fn request(name: &str, collection: Uuid, folder: Option<Uuid>, order: f64) -> SavedRequest {
@@ -13,6 +14,7 @@ fn request(name: &str, collection: Uuid, folder: Option<Uuid>, order: f64) -> Sa
         folder_id: folder,
         sort_order: order,
         spec: RequestSpec {
+            docs: String::new(),
             id: Uuid::now_v7(),
             name: name.into(),
             method: HttpMethod::Post,
@@ -63,10 +65,23 @@ fn sample() -> Snapshot {
         auth: None,
         sort_order: 1.0,
     };
+    let mut documented = request("Create user", collection.id, None, 1.0);
+    documented.spec.docs = "# Create user\nMembuat user baru.".into();
+    let example = ResponseExample {
+        id: Uuid::now_v7(),
+        request_id: documented.spec.id,
+        name: "201 Dibuat".into(),
+        status: 201,
+        status_text: "Created".into(),
+        headers: vec![("content-type".into(), "application/json".into())],
+        body: "{\n  \"id\": 41\n}".into(),
+        sort_order: 1.0,
+    };
     Snapshot {
         name: "Tim".into(),
+        examples: vec![example],
         requests: vec![
-            request("Create user", collection.id, None, 1.0),
+            documented,
             request("Create user", collection.id, None, 2.0),
             request("Delete user", collection.id, Some(nested.id), 1.0),
         ],
@@ -111,6 +126,11 @@ fn folder_round_trip_keeps_structure_and_omits_secrets() {
     );
     assert!(files.values().all(|text| !text.contains("do-not-write")));
     assert!(files.values().any(|text| text.contains("test: |-")));
+    assert!(
+        files
+            .values()
+            .any(|text| text.contains("examples:") && text.contains("docs: |-"))
+    );
 
     assert_eq!(files::write(dir.path(), &files).unwrap(), files.len());
     assert_eq!(files::write(dir.path(), &files).unwrap(), 0);
@@ -124,6 +144,7 @@ fn folder_round_trip_keeps_structure_and_omits_secrets() {
         1
     );
     assert_eq!(back.environments[0].variables[1].value, "");
+    assert_eq!(back.examples, snapshot.examples);
 }
 
 #[test]
@@ -169,8 +190,15 @@ fn invalid_files_are_reported_instead_of_read() {
     let copy = dir.path().join("collections/users-api/copy.request.yaml");
     fs::copy(dir.path().join(&first), &copy).unwrap();
     fs::write(dir.path().join("environments/broken.yaml"), "id: [unclosed").unwrap();
+    let conflict = "<<<<<<< HEAD\nname: A\n=======\nname: B\n>>>>>>> main\n";
+    fs::write(dir.path().join("environments/merge.yaml"), conflict).unwrap();
     let problems = parse::read(dir.path()).unwrap_err().0;
-    assert_eq!(problems.len(), 2, "{problems:?}");
+    assert_eq!(problems.len(), 3, "{problems:?}");
+    assert!(
+        problems
+            .iter()
+            .any(|p| p == "environments/merge.yaml: berisi konflik Git yang belum diselesaikan")
+    );
     assert!(
         problems
             .iter()

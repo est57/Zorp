@@ -2,6 +2,7 @@
 import IconButton from "@/components/ui/IconButton.vue";
 import { useRequestActions } from "@/composables/useRequestActions";
 import { useTabsStore } from "@/stores/tabs";
+import { statusTone } from "@/utils/format";
 import { specColor, specLabel } from "@/utils/request";
 
 const tabs = useTabsStore();
@@ -31,10 +32,13 @@ const actions = useRequestActions();
           class="flex h-full min-w-0 items-center gap-2 pr-1 pl-3"
           @click="tabs.activeId = tab.id"
         >
-          <span class="font-mono text-[10px] font-semibold" :class="specColor(tab.draft)">
-            {{ specLabel(tab.draft) }}
+          <span
+            class="font-mono text-[10px] font-semibold"
+            :class="tab.example ? statusTone(tab.example.status) : specColor(tab.draft)"
+          >
+            {{ tab.example ? tab.example.status : specLabel(tab.draft) }}
           </span>
-          <span class="truncate">{{ tab.draft.name }}</span>
+          <span class="truncate">{{ tab.example?.name ?? tab.draft.name }}</span>
         </button>
         <span class="relative mr-1.5 grid size-5 place-items-center">
           <span
@@ -46,7 +50,7 @@ const actions = useRequestActions();
             type="button"
             class="grid size-5 place-items-center rounded text-subtle hover:bg-surface-2 hover:text-fg"
             :class="tabs.isDirty(tab) && 'hidden group-hover:grid'"
-            :aria-label="`Tutup ${tab.draft.name}`"
+            :aria-label="`Tutup ${tab.example?.name ?? tab.draft.name}`"
             @click="actions.close(tab)"
           >
             &times;

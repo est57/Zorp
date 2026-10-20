@@ -44,7 +44,7 @@ pub fn pairs(value: Option<&Value>) -> Vec<KeyValue> {
 }
 
 /// Reads a value from Postman's `[{ key, value }]` auth parameter lists.
-fn auth_param(list: Option<&Value>, key: &str) -> String {
+pub(super) fn auth_param(list: Option<&Value>, key: &str) -> String {
     list.and_then(Value::as_array)
         .and_then(|items| items.iter().find(|i| str_of(i, "key") == key))
         .map(|i| text_of(i, "value"))
@@ -73,6 +73,7 @@ pub fn parse_auth(value: Option<&Value>, warnings: &mut Vec<String>, owner: &str
             },
         },
         "oauth2" => return oauth2(value.get("oauth2"), warnings, owner),
+        "digest" | "awsv4" | "oauth1" | "jwt" => return super::signed_auth::parse(kind, value),
         "" => return None,
         other => {
             warnings.push(format!(

@@ -28,6 +28,7 @@ fn item(name: &str, url: String, test: &str) -> SavedRequest {
         folder_id: None,
         sort_order: 1.0,
         spec: RequestSpec {
+            docs: String::new(),
             id: Uuid::now_v7(),
             name: name.into(),
             method: HttpMethod::Get,

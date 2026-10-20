@@ -28,8 +28,10 @@ const props = withDefaults(
     /** inside: drop into only; edges: before or after; all: both. */
     zones: "inside" | "edges" | "all";
     menu: MenuItem[];
+    /** Shown as a warning marker, for example credentials typed in directly. */
+    warning?: string;
   }>(),
-  { selected: false, expanded: undefined, draggable: false },
+  { selected: false, expanded: undefined, draggable: false, warning: undefined },
 );
 const emit = defineEmits<{ activate: []; dragstart: []; drop: [zone: DropZone] }>();
 
@@ -82,6 +84,10 @@ function onDrop(event: DragEvent) {
       >
         <slot name="lead" />
         <span class="truncate">{{ label }}</span>
+        <span v-if="warning" class="ml-auto flex shrink-0 text-warning" :title="warning">
+          <AppIcon name="alert" :size="12" />
+          <span class="sr-only">{{ warning }}</span>
+        </span>
       </button>
     </ContextMenuTrigger>
     <ContextMenuPortal>

@@ -23,6 +23,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
+            commands::app::open_link,
             commands::workspaces::list_workspaces,
             commands::workspaces::create_workspace,
             commands::workspaces::switch_workspace,
@@ -32,6 +33,7 @@ pub fn run() {
             commands::workspace_folder::open_folder,
             commands::workspace_folder::link_folder,
             commands::workspace_folder::unlink_folder,
+            commands::workspace_folder::reveal_folder,
             commands::http::send_request,
             commands::http::cancel_request,
             commands::collections::list_tree,
@@ -49,6 +51,12 @@ pub fn run() {
             commands::history::list_history,
             commands::history::clear_history,
             commands::import::import_postman,
+            commands::examples::save_example,
+            commands::examples::get_example,
+            commands::examples::rename_example,
+            commands::examples::delete_example,
+            commands::openapi::preview_openapi,
+            commands::openapi::import_openapi,
             commands::export::export_collection,
             commands::export::export_environment,
             commands::export::import_environment,

@@ -113,3 +113,16 @@ pub fn write(root: &Path, files: &FileMap) -> AppResult<usize> {
     }
     Ok(touched)
 }
+
+const GITIGNORE: &str = ".gitignore";
+const GITIGNORE_TEXT: &str = "# File sistem operasi\n.DS_Store\nThumbs.db\n";
+
+/// Adds a `.gitignore` for operating system clutter to a new workspace folder.
+/// An existing file is never changed.
+pub fn ensure_gitignore(root: &Path) -> AppResult<()> {
+    let path = root.join(GITIGNORE);
+    if fs::symlink_metadata(&path).is_err() {
+        write_atomic(&path, GITIGNORE_TEXT)?;
+    }
+    Ok(())
+}

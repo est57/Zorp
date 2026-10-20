@@ -1,5 +1,11 @@
 mod body;
 mod fields;
+mod signed_auth;
+
+#[cfg(test)]
+pub fn fields_auth(auth: &crate::models::request::Auth) -> Option<serde_json::Value> {
+    fields::auth(auth)
+}
 
 use serde_json::{Value, json};
 use uuid::Uuid;

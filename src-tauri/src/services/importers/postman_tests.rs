@@ -32,7 +32,7 @@ const SAMPLE: &str = r#"{
       "name": "Upload",
       "request": {
         "method": "PUT",
-        "auth": { "type": "digest" },
+        "auth": { "type": "ntlm" },
         "body": { "mode": "formdata", "formdata": [{ "key": "file", "type": "file", "src": "/tmp/a.png" }, { "key": "note", "value": "hi", "type": "text" }] },
         "url": "{{base_url}}/upload"
       }
@@ -116,4 +116,41 @@ fn maps_oauth2_client_credentials() {
 fn rejects_non_postman_json() {
     assert!(parse("{\"hello\": 1}").is_err());
     assert!(parse("not json").is_err());
+}
+
+#[test]
+fn signed_auth_types_round_trip_through_postman() {
+    use crate::models::auth::{AwsSigV4Config, OAuth1Config, OAuth1Method};
+    use crate::services::exporters::postman::fields_auth;
+    let originals = [
+        Auth::Digest {
+            username: "rani".into(),
+            password: "{{pass}}".into(),
+        },
+        Auth::AwsSigV4(AwsSigV4Config {
+            access_key: "{{aws_key}}".into(),
+            secret_key: "{{aws_secret}}".into(),
+            session_token: String::new(),
+            region: "ap-southeast-1".into(),
+            service: "execute-api".into(),
+        }),
+        Auth::OAuth1(OAuth1Config {
+            consumer_key: "ck".into(),
+            consumer_secret: "{{cs}}".into(),
+            token: String::new(),
+            token_secret: String::new(),
+            signature_method: OAuth1Method::HmacSha256,
+            realm: String::new(),
+        }),
+    ];
+    for original in originals {
+        let exported = fields_auth(&original).unwrap();
+        let mut warnings = Vec::new();
+        let back = super::parse_auth_value(&exported, &mut warnings).unwrap();
+        assert_eq!(
+            serde_json::to_value(&back).unwrap(),
+            serde_json::to_value(&original).unwrap()
+        );
+        assert!(warnings.is_empty());
+    }
 }

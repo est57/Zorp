@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
+import type { ExampleSummary } from "@/bindings/ExampleSummary";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import type { SavedRequest } from "@/bindings/SavedRequest";
 import { cloneSpec, newId, newRequest, snapshot } from "@/utils/request";
@@ -11,6 +12,8 @@ export interface Tab {
   saved: string;
   collectionId: string | null;
   folderId: string | null;
+  /** Set when the tab shows a saved response example instead of an editable request. */
+  example?: ExampleSummary;
 }
 
 export const useTabsStore = defineStore("tabs", () => {
@@ -38,6 +41,25 @@ export const useTabsStore = defineStore("tabs", () => {
     const existing = tabs.value.find((t) => t.id === item.spec.id);
     if (existing) activeId.value = existing.id;
     else add(item.spec, item.collectionId, item.folderId);
+  }
+
+  /** Opens a saved example in its own read-only tab, keyed by the example id. */
+  function openExample(example: ExampleSummary, request: SavedRequest) {
+    const existing = tabs.value.find((t) => t.id === example.id);
+    if (existing) {
+      activeId.value = existing.id;
+      return;
+    }
+    const draft = cloneSpec(request.spec);
+    tabs.value.push({
+      id: example.id,
+      draft,
+      saved: snapshot(draft),
+      collectionId: null,
+      folderId: null,
+      example,
+    });
+    activeId.value = example.id;
   }
 
   function openNew(spec: RequestSpec = newRequest()) {
@@ -92,8 +114,12 @@ export const useTabsStore = defineStore("tabs", () => {
   }
 
   function reset() {
-    tabs.value = [];
-    activeId.value = null;
+    replace([], null);
+  }
+
+  function replace(next: Tab[], nextActive: string | null) {
+    tabs.value = next;
+    activeId.value = next.some((t) => t.id === nextActive) ? nextActive : (next[0]?.id ?? null);
   }
 
   return {
@@ -103,10 +129,12 @@ export const useTabsStore = defineStore("tabs", () => {
     isDirty,
     openSaved,
     openNew,
+    openExample,
     openCopy,
     close,
     markSaved,
     syncFromTree,
     reset,
+    replace,
   };
 });

@@ -98,6 +98,12 @@ export function useCommands() {
       },
       { id: "postman", group: "Aksi", label: "Impor koleksi Postman", run: fromPostman },
       {
+        id: "openapi",
+        group: "Aksi",
+        label: "Impor OpenAPI / Swagger",
+        run: () => (dialogs.openApiOpen = true),
+      },
+      {
         id: "postman-env",
         group: "Aksi",
         label: "Impor environment Postman",

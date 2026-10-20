@@ -39,6 +39,7 @@ fn state_with_env() -> AppState {
 
 fn spec(url: String, scripts: Scripts) -> RequestSpec {
     RequestSpec {
+        docs: String::new(),
         id: Uuid::now_v7(),
         name: "Login".into(),
         method: HttpMethod::Get,

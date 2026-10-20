@@ -8,6 +8,7 @@ use url::Url;
 
 use crate::error::{AppError, AppResult};
 use crate::models::request::{ApiKeyLocation, Auth, Body, MultipartPart, RequestSpec};
+use crate::services::signing;
 
 const MAX_UPLOAD_BYTES: u64 = 100 * 1024 * 1024;
 
@@ -152,7 +153,28 @@ pub fn build(client: &Client, spec: &RequestSpec, auth: &Auth) -> AppResult<Requ
         }
         _ => builder,
     };
-    apply_body(builder.headers(headers), &spec.body, has_content_type)
+    sign(
+        apply_body(builder.headers(headers), &spec.body, has_content_type)?,
+        auth,
+    )
+}
+
+/// Signs the finished request for auth types that cover the URL, headers or body.
+fn sign(builder: RequestBuilder, auth: &Auth) -> AppResult<RequestBuilder> {
+    if !matches!(auth, Auth::AwsSigV4(_) | Auth::OAuth1(_)) {
+        return Ok(builder);
+    }
+    let (client, request) = builder.build_split();
+    let mut request =
+        request.map_err(|e| AppError::Validation(format!("Request tidak valid: {e}")))?;
+    match auth {
+        Auth::AwsSigV4(c) => signing::aws::sign(&mut request, c, signing::unix_now())?,
+        Auth::OAuth1(c) => {
+            signing::oauth1::sign(&mut request, c, &signing::nonce()?, signing::unix_now())?
+        }
+        _ => {}
+    }
+    Ok(RequestBuilder::from_parts(client, request))
 }
 
 #[cfg(test)]

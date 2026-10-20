@@ -1,7 +1,7 @@
 use tauri::State;
 use uuid::Uuid;
 
-use crate::db::{collections, folders, requests};
+use crate::db::{collections, examples, folders, requests};
 use crate::error::{AppError, AppResult};
 use crate::models::collection::{
     Collection, CollectionTree, Folder, MoveTarget, NodeKind, SavedRequest,
@@ -16,6 +16,7 @@ pub fn list_tree(state: State<'_, AppState>) -> AppResult<CollectionTree> {
         collections: collections::list_collections(&conn, state.workspace_id())?,
         folders: folders::list_folders(&conn, state.workspace_id())?,
         requests: requests::list(&conn, state.workspace_id())?,
+        examples: examples::summaries(&conn, state.workspace_id())?,
     })
 }
 

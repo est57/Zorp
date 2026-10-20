@@ -2,6 +2,7 @@
 import type { Collection } from "@/bindings/Collection";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import { useCredentialWarnings } from "@/composables/useCredentialWarnings";
 import { useExport } from "@/composables/useExport";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
@@ -13,6 +14,7 @@ const collections = useCollectionsStore();
 const actions = useTreeActions();
 const dialogs = useDialogsStore();
 const exporter = useExport();
+const { warningFor } = useCredentialWarnings();
 
 const menu = (c: Collection): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(c.id, null) },
@@ -50,6 +52,7 @@ const menu = (c: Collection): MenuItem[] => [
         :depth="0"
         :expanded="collections.expanded.has(c.id)"
         :menu="menu(c)"
+        :warning="warningFor(c.id)"
         zones="inside"
         class="font-medium"
         @activate="collections.toggle(c.id)"

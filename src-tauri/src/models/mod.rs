@@ -1,10 +1,13 @@
 pub mod app_info;
+pub mod auth;
 pub mod collection;
 pub mod cookie;
 pub mod environment;
+pub mod example;
 pub mod history;
 pub mod import;
 pub mod oauth;
+pub mod openapi;
 pub mod realtime;
 pub mod request;
 pub mod response;

@@ -5,11 +5,19 @@ import { isDynamic, tokenize } from "@/utils/variables";
 
 const model = defineModel<string>({ required: true });
 withDefaults(
-  defineProps<{ placeholder?: string; label: string; size?: "sm" | "md"; inputId?: string }>(),
+  defineProps<{
+    placeholder?: string;
+    label: string;
+    size?: "sm" | "md";
+    inputId?: string;
+    /** Shows the value as dots, for credentials typed in directly. */
+    masked?: boolean;
+  }>(),
   {
     placeholder: "",
     size: "sm",
     inputId: undefined,
+    masked: false,
   },
 );
 defineEmits<{ enter: []; paste: [event: ClipboardEvent] }>();
@@ -31,6 +39,7 @@ defineExpose({ focus: () => input.value?.focus() });
 <template>
   <div class="relative min-w-0 flex-1 font-mono" :class="size === 'md' ? 'text-[13px]' : 'text-xs'">
     <div
+      v-show="!masked"
       ref="mirror"
       aria-hidden="true"
       class="pointer-events-none absolute inset-0 flex items-center overflow-hidden px-2 whitespace-pre"
@@ -54,9 +63,11 @@ defineExpose({ focus: () => input.value?.focus() });
       v-model="model"
       :aria-label="label"
       :placeholder="placeholder"
+      :type="masked ? 'password' : 'text'"
       spellcheck="false"
       autocomplete="off"
-      class="relative h-full w-full bg-transparent px-2 text-transparent caret-[var(--fg)] outline-none placeholder:text-subtle selection:bg-accent/30 selection:text-transparent"
+      class="relative h-full w-full bg-transparent px-2 caret-[var(--fg)] outline-none placeholder:text-subtle selection:bg-accent/30"
+      :class="masked ? 'text-fg' : 'text-transparent selection:text-transparent'"
       @scroll="syncScroll"
       @input="syncScroll"
       @keyup="syncScroll"

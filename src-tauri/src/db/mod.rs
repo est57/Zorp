@@ -1,6 +1,7 @@
 pub mod collections;
 pub mod cookies;
 pub mod environments;
+pub mod examples;
 pub mod folders;
 pub mod history;
 pub mod import;
@@ -27,6 +28,7 @@ const MIGRATIONS_SLICE: &[M<'_>] = &[
     M::up(include_str!("../../migrations/0002_cookies.sql")),
     M::up(include_str!("../../migrations/0003_settings.sql")),
     M::up(include_str!("../../migrations/0004_workspaces.sql")),
+    M::up(include_str!("../../migrations/0005_examples.sql")),
 ];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;

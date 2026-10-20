@@ -1,5 +1,11 @@
 mod body;
 mod fields;
+mod signed_auth;
+
+#[cfg(test)]
+pub fn parse_auth_value(value: &Value, warnings: &mut Vec<String>) -> Option<Auth> {
+    fields::parse_auth(Some(value), warnings, "tes")
+}
 
 use serde_json::Value;
 use uuid::Uuid;
@@ -57,6 +63,7 @@ fn parse_request(name: String, request: &Value, warnings: &mut Vec<String>) -> R
         m => m,
     };
     RequestSpec {
+        docs: String::new(),
         id: Uuid::now_v7(),
         method: parse_method(method, warnings, &name),
         url,

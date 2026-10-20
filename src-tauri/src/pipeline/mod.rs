@@ -1,4 +1,5 @@
 mod context;
+mod digest;
 mod scripts;
 
 use uuid::Uuid;
@@ -9,7 +10,7 @@ use crate::models::response::{ProgressPhase, ResponseData};
 use crate::models::script::ScriptReport;
 use crate::services::client_pool::ClientKey;
 use crate::services::resolver::resolve_spec;
-use crate::services::{http_engine, oauth, request_builder};
+use crate::services::{oauth, request_builder, signing};
 use crate::state::AppState;
 pub use context::RequestContext;
 
@@ -72,6 +73,7 @@ pub async fn prepare(
                 token: oauth::access_token(state.secrets.as_ref(), &token_client, &config).await?,
             }
         }
+        Auth::Jwt(config) => signing::jwt::to_auth(&config, signing::unix_now())?,
         other => other,
     };
     Ok(Prepared {
@@ -93,7 +95,7 @@ async fn send(
     let builder = request_builder::build(&prepared.client, &prepared.spec, &prepared.auth)?;
     let cancelled = state.register(request_id)?;
     let result = tokio::select! {
-        result = http_engine::execute(builder, &state.spill_dir, progress) => result,
+        result = digest::execute(builder, &prepared.auth, &state.spill_dir, progress) => result,
         _ = cancelled => Err(AppError::Cancelled),
     };
     state.finish(request_id);
@@ -101,5 +103,7 @@ async fn send(
     result
 }
 
+#[cfg(test)]
+mod auth_tests;
 #[cfg(test)]
 mod tests;

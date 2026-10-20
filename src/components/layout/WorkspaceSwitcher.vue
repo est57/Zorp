@@ -10,12 +10,16 @@ import {
 } from "reka-ui";
 import AppIcon from "@/components/ui/AppIcon.vue";
 import { useWorkspaceActions } from "@/composables/useWorkspaceActions";
+import { revealFolder } from "@/api/workspaces";
+import { isMac } from "@/composables/usePlatform";
 import { useAppStore } from "@/stores/app";
+import { useToastsStore } from "@/stores/toasts";
 import { useWorkspacesStore } from "@/stores/workspaces";
 
 const app = useAppStore();
 const workspaces = useWorkspacesStore();
 const actions = useWorkspaceActions();
+const toasts = useToastsStore();
 
 const folderName = (path: string) => path.split(/[\\/]/).pop() ?? path;
 
@@ -81,7 +85,19 @@ const item =
           <AppIcon name="save" :size="14" />
           Simpan ke folder
         </DropdownMenuItem>
-        <DropdownMenuItem v-else :class="item" @select="actions.unlinkFolder">
+        <DropdownMenuItem
+          v-if="workspaces.active?.folder"
+          :class="item"
+          @select="toasts.guard(revealFolder)"
+        >
+          <AppIcon name="folder" :size="14" />
+          {{ isMac ? "Tampilkan di Finder" : "Tampilkan folder" }}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          v-if="workspaces.active?.folder"
+          :class="item"
+          @select="actions.unlinkFolder"
+        >
           <AppIcon name="x" :size="14" />
           Berhenti sinkron folder
         </DropdownMenuItem>

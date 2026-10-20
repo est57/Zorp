@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::models::realtime::RequestMode;
-use crate::models::request::{Auth, Body, HttpMethod, KeyValue, RequestSettings, RequestSpec};
+use crate::models::request::{Auth, Body, HttpMethod, KeyValue, RequestSettings};
 use crate::models::script::Scripts;
 
 pub const FORMAT_VERSION: u32 = 1;
@@ -62,6 +62,25 @@ pub struct RequestFile {
     pub settings: RequestSettings,
     #[serde(default, skip_serializing_if = "is_empty_scripts")]
     pub scripts: Scripts,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub docs: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub examples: Vec<ExampleFile>,
+}
+
+/// A saved response, kept in the request file so it is reviewed together with it.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExampleFile {
+    pub id: Uuid,
+    pub name: String,
+    pub status: u16,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub status_text: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub headers: Vec<Pair>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub body: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -82,42 +101,6 @@ pub struct EnvVariable {
     pub enabled: bool,
     #[serde(default, skip_serializing_if = "is_false")]
     pub secret: bool,
-}
-
-impl RequestFile {
-    pub fn from_spec(spec: RequestSpec, order: f64) -> Self {
-        Self {
-            id: spec.id,
-            name: spec.name,
-            order,
-            method: spec.method,
-            url: spec.url,
-            mode: spec.mode,
-            params: spec.params,
-            headers: spec.headers,
-            body: spec.body,
-            auth: spec.auth,
-            settings: spec.settings,
-            scripts: spec.scripts,
-        }
-    }
-
-    pub fn into_spec(self) -> (RequestSpec, f64) {
-        let spec = RequestSpec {
-            id: self.id,
-            name: self.name,
-            method: self.method,
-            url: self.url,
-            params: self.params,
-            headers: self.headers,
-            body: self.body,
-            auth: self.auth,
-            settings: self.settings,
-            scripts: self.scripts,
-            mode: self.mode,
-        };
-        (spec, self.order)
-    }
 }
 
 fn is_http(mode: &RequestMode) -> bool {

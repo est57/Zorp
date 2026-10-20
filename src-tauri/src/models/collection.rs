@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
 
+use super::example::ExampleSummary;
 use super::request::{Auth, RequestSpec};
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -42,6 +43,7 @@ pub struct CollectionTree {
     pub collections: Vec<Collection>,
     pub folders: Vec<Folder>,
     pub requests: Vec<SavedRequest>,
+    pub examples: Vec<ExampleSummary>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, TS)]

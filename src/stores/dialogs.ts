@@ -28,6 +28,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
   /** Tab whose code snippet is shown. */
   const snippetTabId = ref<string | null>(null);
   const curlImportOpen = ref(false);
+  const openApiOpen = ref(false);
   const cookiesOpen = ref(false);
   const settingsOpen = ref(false);
   /** Environment open in the editor; null id means a new one. */
@@ -61,6 +62,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
     authTarget,
     snippetTabId,
     curlImportOpen,
+    openApiOpen,
     cookiesOpen,
     settingsOpen,
     environmentEditor,

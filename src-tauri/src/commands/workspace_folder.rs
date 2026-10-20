@@ -100,6 +100,23 @@ pub fn link_folder(
     Ok(())
 }
 
+/// Shows the active workspace folder in the system file manager.
+#[tauri::command]
+pub fn reveal_folder(engine: State<'_, SyncEngine>) -> AppResult<()> {
+    let folder = engine
+        .status()
+        .folder
+        .ok_or_else(|| AppError::Validation("Workspace ini belum disimpan ke folder".into()))?;
+    let root = Path::new(&folder);
+    let target = if root.join(ROOT_FILE).is_file() {
+        root.join(ROOT_FILE)
+    } else {
+        root.to_path_buf()
+    };
+    tauri_plugin_opener::reveal_item_in_dir(target)
+        .map_err(|e| AppError::Internal(format!("Folder tidak bisa ditampilkan: {e}")))
+}
+
 /// Stops syncing the active workspace; the files in the folder are kept.
 #[tauri::command]
 pub fn unlink_folder(

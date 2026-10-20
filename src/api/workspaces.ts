@@ -23,6 +23,8 @@ export const linkFolder = (path: string) => invoke<void>("link_folder", { path }
 
 export const unlinkFolder = () => invoke<void>("unlink_folder");
 
+export const revealFolder = () => invoke<void>("reveal_folder");
+
 /** Data was read from the workspace folder, for example after `git pull`. */
 export const onWorkspaceChanged = (handler: () => void) =>
   listen("workspace://changed", () => handler());

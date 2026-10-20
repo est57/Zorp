@@ -30,7 +30,7 @@ src-tauri/gen/schemas
 # Local planning, design prototypes and assistant notes
 implementation.md
 design.md
-design-mockup.html
+design-mockup*.html
 CLAUDE.md
 CLAUDE.local.md
 .claude/

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { ExampleSummary } from "@/bindings/ExampleSummary";
 import type { SavedRequest } from "@/bindings/SavedRequest";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import { useCredentialWarnings } from "@/composables/useCredentialWarnings";
+import { useExampleActions } from "@/composables/useExampleActions";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
 import { useTabsStore } from "@/stores/tabs";
@@ -15,6 +18,8 @@ const collections = useCollectionsStore();
 const tabs = useTabsStore();
 const actions = useTreeActions();
 const dialogs = useDialogsStore();
+const { warningFor } = useCredentialWarnings();
+const examples = useExampleActions();
 
 const folderMenu = (id: string, name: string): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(props.collectionId, id) },
@@ -50,6 +55,19 @@ const requestMenu = (item: SavedRequest): MenuItem[] => [
   },
 ];
 
+const exampleMenu = (ex: ExampleSummary): MenuItem[] => [
+  { label: "Buka", icon: "send", run: () => examples.open(ex) },
+  { label: "Ganti nama", icon: "pencil", run: () => examples.rename(ex) },
+  { label: "Hapus", icon: "trash", danger: true, run: () => examples.remove(ex) },
+];
+
+const statusChip = (status: number) =>
+  status < 300
+    ? "bg-[color-mix(in_srgb,var(--success)_14%,transparent)] text-success"
+    : status < 400
+      ? "bg-surface-2 text-muted"
+      : "bg-[color-mix(in_srgb,var(--danger)_14%,transparent)] text-danger";
+
 const drag = (kind: "folder" | "request", id: string) =>
   (actions.dragging.value = { kind, id, collectionId: props.collectionId });
 </script>
@@ -62,6 +80,7 @@ const drag = (kind: "folder" | "request", id: string) =>
         :depth="depth"
         :expanded="collections.expanded.has(folder.id)"
         :menu="folderMenu(folder.id, folder.name)"
+        :warning="warningFor(folder.id)"
         draggable
         zones="all"
         @activate="collections.toggle(folder.id)"
@@ -87,36 +106,73 @@ const drag = (kind: "folder" | "request", id: string) =>
         :depth="depth + 1"
       />
     </template>
-    <TreeRow
-      v-for="item in collections.requestsOf(collectionId, folderId)"
-      :key="item.spec.id"
-      :label="item.spec.name"
-      :depth="depth"
-      :selected="tabs.activeId === item.spec.id"
-      :menu="requestMenu(item)"
-      draggable
-      zones="edges"
-      @activate="tabs.openSaved(item)"
-      @dragstart="drag('request', item.spec.id)"
-      @drop="
-        (zone) =>
-          actions.drop({
-            kind: 'request',
-            id: item.spec.id,
-            collectionId,
-            parentId: folderId,
-            zone,
-          })
-      "
-    >
-      <template #lead>
-        <span
-          class="w-8 shrink-0 text-right font-mono text-[10px] font-semibold"
-          :class="specColor(item.spec)"
+    <template v-for="item in collections.requestsOf(collectionId, folderId)" :key="item.spec.id">
+      <TreeRow
+        :label="item.spec.name"
+        :depth="depth"
+        :selected="tabs.activeId === item.spec.id"
+        :menu="requestMenu(item)"
+        :warning="warningFor(item.spec.id)"
+        draggable
+        zones="edges"
+        @activate="tabs.openSaved(item)"
+        @dragstart="drag('request', item.spec.id)"
+        @drop="
+          (zone) =>
+            actions.drop({
+              kind: 'request',
+              id: item.spec.id,
+              collectionId,
+              parentId: folderId,
+              zone,
+            })
+        "
+      >
+        <template #lead>
+          <span
+            v-if="collections.examplesOf(item.spec.id).length"
+            class="grid size-3 shrink-0 place-items-center text-subtle"
+            :aria-label="
+              collections.expanded.has(item.spec.id) ? 'Sembunyikan contoh' : 'Tampilkan contoh'
+            "
+            @click.stop="collections.toggle(item.spec.id)"
+          >
+            <AppIcon
+              :name="collections.expanded.has(item.spec.id) ? 'chevronDown' : 'chevronRight'"
+              :size="12"
+            />
+          </span>
+          <span v-else class="w-3 shrink-0" />
+          <span
+            class="w-8 shrink-0 text-right font-mono text-[10px] font-semibold"
+            :class="specColor(item.spec)"
+          >
+            {{ specLabel(item.spec) }}
+          </span>
+        </template>
+      </TreeRow>
+      <template v-if="collections.expanded.has(item.spec.id)">
+        <TreeRow
+          v-for="ex in collections.examplesOf(item.spec.id)"
+          :key="ex.id"
+          :label="ex.name"
+          :depth="depth + 1"
+          :selected="tabs.activeId === ex.id"
+          :menu="exampleMenu(ex)"
+          zones="edges"
+          class="text-muted"
+          @activate="examples.open(ex)"
         >
-          {{ specLabel(item.spec) }}
-        </span>
+          <template #lead>
+            <span class="w-3 shrink-0" />
+            <span
+              class="shrink-0 rounded px-1 font-mono text-[10px] leading-4 font-semibold"
+              :class="statusChip(ex.status)"
+              >{{ ex.status }}</span
+            >
+          </template>
+        </TreeRow>
       </template>
-    </TreeRow>
+    </template>
   </div>
 </template>

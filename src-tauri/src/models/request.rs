@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
 
+use super::auth::{AwsSigV4Config, JwtConfig, OAuth1Config};
 use super::oauth::OAuth2Config;
 use super::realtime::RequestMode;
 use super::script::Scripts;
@@ -105,6 +106,15 @@ pub enum Auth {
     },
     #[serde(rename = "oauth2")]
     OAuth2(OAuth2Config),
+    Digest {
+        username: String,
+        password: String,
+    },
+    Jwt(JwtConfig),
+    #[serde(rename = "aws_sigv4")]
+    AwsSigV4(AwsSigV4Config),
+    #[serde(rename = "oauth1")]
+    OAuth1(OAuth1Config),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -151,6 +161,10 @@ pub struct RequestSpec {
     pub scripts: Scripts,
     #[serde(default)]
     pub mode: RequestMode,
+    /// Markdown notes shown in the Docs tab.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    #[ts(as = "Option<String>", optional)]
+    pub docs: String,
 }
 
 impl HttpMethod {

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use rusqlite::{Connection, params};
 use uuid::Uuid;
 
-use super::{collections, environments, folders, now_ms, requests, workspace};
+use super::{collections, environments, examples, folders, now_ms, requests, workspace};
 use crate::error::{AppError, AppResult};
 use crate::models::environment::Variable;
 use crate::services::secrets::{SecretStore, env_account};
@@ -29,6 +29,7 @@ pub fn load(conn: &Connection, workspace_id: Uuid) -> AppResult<Snapshot> {
         collections,
         folders: folders::list_folders(conn, workspace_id)?,
         requests: requests::list(conn, workspace_id)?,
+        examples: examples::list(conn, workspace_id)?,
         environments: environments::list(conn, workspace_id)?,
     })
 }
@@ -124,6 +125,12 @@ pub fn replace(
             ],
         )
         .map_err(conflict)?;
+    }
+    for example in &snapshot.examples {
+        examples::insert(&tx, example).map_err(|e| match e {
+            AppError::Db(inner) => conflict(inner),
+            other => other,
+        })?;
     }
     let stale = replace_environments(&tx, &ws, snapshot, &previous)?;
     tx.commit()?;

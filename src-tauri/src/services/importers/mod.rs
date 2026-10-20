@@ -1,4 +1,10 @@
+pub mod openapi;
 pub mod postman;
+
+#[cfg(test)]
+mod openapi_fixtures;
+#[cfg(test)]
+mod openapi_tests;
 
 use crate::models::request::{Auth, RequestSpec};
 

@@ -37,7 +37,31 @@ const sample = (
   extra: Partial<RequestSpec> = {},
 ) => newRequest({ name, method, url, auth: { type: "bearer", token: "{{token}}" }, ...extra });
 
+export const examples = [
+  {
+    id: "ex-200",
+    requestId: "r-login",
+    name: "Login berhasil",
+    status: 200,
+    statusText: "OK",
+    headers: [["content-type", "application/json"]] as [string, string][],
+    body: '{\n  "token": "contoh-token",\n  "user": { "id": 41, "name": "Rani Wijaya" }\n}',
+    sortOrder: 1,
+  },
+  {
+    id: "ex-401",
+    requestId: "r-login",
+    name: "Password salah",
+    status: 401,
+    statusText: "Unauthorized",
+    headers: [["content-type", "application/json"]] as [string, string][],
+    body: '{\n  "message": "Email atau password salah"\n}',
+    sortOrder: 2,
+  },
+];
+
 export const tree: CollectionTree = {
+  examples: examples.map(({ id, requestId, name, status }) => ({ id, requestId, name, status })),
   collections: [{ id: "c1", name: "API Contoh", auth: null, sortOrder: 1 }],
   folders: [
     { id: "f1", collectionId: "c1", parentId: null, name: "Users", auth: null, sortOrder: 1 },
@@ -62,6 +86,19 @@ export const tree: CollectionTree = {
       folderId: "f1",
       sortOrder: 3,
       spec: sample("Hapus user", "DELETE", "{{base_url}}/users/{{user_id}}"),
+    },
+    {
+      collectionId: "c1",
+      folderId: null,
+      sortOrder: 1,
+      spec: sample("Login", "POST", "{{base_url}}/login", {
+        id: "r-login",
+        auth: { type: "none" },
+        body: {
+          type: "json",
+          text: '{\n  "email": "rani@contoh.id",\n  "password": "contoh123"\n}',
+        },
+      }),
     },
   ],
 };

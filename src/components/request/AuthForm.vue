@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import type { Auth } from "@/bindings/Auth";
+import SecretField from "@/components/ui/SecretField.vue";
 import VariableInput from "@/components/ui/VariableInput.vue";
 import OAuth2Fields from "./OAuth2Fields.vue";
-import { inputClass, selectClass } from "@/components/ui/styles";
+import SignedAuthFields from "./SignedAuthFields.vue";
+import { selectClass } from "@/components/ui/styles";
 
 const props = withDefaults(
   defineProps<{ inheritLabel?: string; idPrefix?: string; collectionId?: string | null }>(),
@@ -17,6 +19,10 @@ const options: { type: Auth["type"]; label: string }[] = [
   { type: "basic", label: "Basic auth" },
   { type: "api_key", label: "API key" },
   { type: "oauth2", label: "OAuth 2.0" },
+  { type: "oauth1", label: "OAuth 1.0" },
+  { type: "jwt", label: "JWT Bearer" },
+  { type: "digest", label: "Digest auth" },
+  { type: "aws_sigv4", label: "AWS Signature v4" },
 ];
 
 function setType(type: Auth["type"]) {
@@ -38,6 +44,35 @@ function setType(type: Auth["type"]) {
       clientAuth: "basic",
       callbackPort: 0,
       tokenKey: crypto.randomUUID(),
+    },
+    digest: { type: "digest", username: "", password: "" },
+    jwt: {
+      type: "jwt",
+      algorithm: "HS256",
+      secret: "",
+      secretBase64: false,
+      payload: '{\n  "sub": ""\n}',
+      headers: "",
+      location: "header",
+      param: "Authorization",
+      prefix: "Bearer",
+    },
+    aws_sigv4: {
+      type: "aws_sigv4",
+      accessKey: "",
+      secretKey: "",
+      sessionToken: "",
+      region: "",
+      service: "",
+    },
+    oauth1: {
+      type: "oauth1",
+      consumerKey: "",
+      consumerSecret: "",
+      token: "",
+      tokenSecret: "",
+      signatureMethod: "HMAC-SHA1",
+      realm: "",
     },
   };
   auth.value = defaults[type];
@@ -62,21 +97,18 @@ const field = "flex h-7 min-w-0 rounded border border-line bg-bg focus-within:bo
 
     <template v-if="auth.type === 'bearer'">
       <span class="label-caps">Token</span>
-      <div :class="field">
-        <VariableInput v-model="auth.token" label="Token" placeholder="{{token}}" />
-      </div>
+      <SecretField v-model="auth.token" label="Token" placeholder="{{token}}" />
     </template>
 
     <template v-else-if="auth.type === 'basic'">
       <span class="label-caps">Username</span>
       <div :class="field"><VariableInput v-model="auth.username" label="Username" /></div>
       <label :for="`${idPrefix}-password`" class="label-caps">Password</label>
-      <input
-        :id="`${idPrefix}-password`"
+      <SecretField
         v-model="auth.password"
-        type="password"
-        autocomplete="off"
-        :class="inputClass"
+        label="Password"
+        placeholder="{{password}}"
+        :input-id="`${idPrefix}-password`"
       />
     </template>
 
@@ -84,15 +116,24 @@ const field = "flex h-7 min-w-0 rounded border border-line bg-bg focus-within:bo
       <span class="label-caps">Key</span>
       <div :class="field"><VariableInput v-model="auth.key" label="Nama key" /></div>
       <span class="label-caps">Value</span>
-      <div :class="field">
-        <VariableInput v-model="auth.value" label="Nilai key" placeholder="{{api_key}}" />
-      </div>
+      <SecretField v-model="auth.value" label="Nilai key" placeholder="{{api_key}}" />
       <label :for="`${idPrefix}-location`" class="label-caps">Kirim lewat</label>
       <select :id="`${idPrefix}-location`" v-model="auth.location" :class="selectClass">
         <option value="header">Header</option>
         <option value="query">Query param</option>
       </select>
     </template>
+
+    <SignedAuthFields
+      v-else-if="
+        auth.type === 'digest' ||
+        auth.type === 'jwt' ||
+        auth.type === 'aws_sigv4' ||
+        auth.type === 'oauth1'
+      "
+      v-model="auth"
+      :id-prefix="idPrefix"
+    />
 
     <OAuth2Fields
       v-else-if="auth.type === 'oauth2'"

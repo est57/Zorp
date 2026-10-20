@@ -1,4 +1,5 @@
 import { open } from "@tauri-apps/plugin-dialog";
+import type { ImportReport } from "@/bindings/ImportReport";
 import { importEnvironment } from "@/api/exporters";
 import { importPostman } from "@/api/importers";
 import { useCollectionsStore } from "@/stores/collections";
@@ -16,7 +17,11 @@ export function useImport() {
     });
     if (typeof path !== "string") return;
     const report = await toasts.guard(() => importPostman(path));
-    if (!report) return;
+    if (report) await announce(report);
+  }
+
+  /** Opens the imported collection and reports the result. */
+  async function announce(report: ImportReport) {
     collections.toggle(report.collectionId, true);
     await collections.load();
     toasts.push(
@@ -44,5 +49,5 @@ export function useImport() {
     );
   }
 
-  return { fromPostman, environmentFromPostman };
+  return { fromPostman, environmentFromPostman, announce };
 }

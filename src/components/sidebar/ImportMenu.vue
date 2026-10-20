@@ -2,8 +2,10 @@
 import {
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuRoot,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "reka-ui";
 import AppIcon from "@/components/ui/AppIcon.vue";
@@ -30,16 +32,27 @@ const item =
       <DropdownMenuContent
         align="end"
         :side-offset="4"
-        class="z-50 min-w-52 rounded-md border border-line bg-surface p-1 text-xs text-fg shadow-float"
+        class="z-50 min-w-56 rounded-md border border-line bg-surface p-1 text-xs text-fg shadow-float"
       >
-        <DropdownMenuItem :class="item" @select="dialogs.curlImportOpen = true">
-          <AppIcon name="code" :size="14" />
-          Dari perintah cURL
-        </DropdownMenuItem>
+        <DropdownMenuLabel class="label-caps px-2 py-1">Impor koleksi</DropdownMenuLabel>
         <DropdownMenuItem :class="item" @select="fromPostman">
           <AppIcon name="file" :size="14" />
-          Dari koleksi Postman (v2.1)
+          Postman (v2.1)
         </DropdownMenuItem>
+        <DropdownMenuItem :class="item" @select="dialogs.openApiOpen = true">
+          <AppIcon name="file" :size="14" />
+          OpenAPI / Swagger
+          <span
+            class="ml-auto rounded bg-accent-soft px-1.5 text-[10px] leading-4 font-semibold text-accent"
+            >Baru</span
+          >
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="item" @select="dialogs.curlImportOpen = true">
+          <AppIcon name="code" :size="14" />
+          Perintah cURL
+        </DropdownMenuItem>
+        <DropdownMenuSeparator class="my-1 h-px bg-line" />
+        <DropdownMenuLabel class="label-caps px-2 py-1">Impor environment</DropdownMenuLabel>
         <DropdownMenuItem :class="item" @select="environmentFromPostman">
           <AppIcon name="layers" :size="14" />
           Environment Postman

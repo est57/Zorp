@@ -6,6 +6,7 @@ import SegmentedTabs, { type TabItem } from "@/components/ui/SegmentedTabs.vue";
 import { urlFromParams } from "@/utils/url";
 import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
+import DocsEditor from "./DocsEditor.vue";
 import ScriptEditor from "./ScriptEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
 
@@ -27,6 +28,7 @@ const allSections = computed<TabItem[]>(() => [
       [props.spec.scripts.preRequest, props.spec.scripts.test].filter((s) => s.trim()).length ||
       undefined,
   },
+  { id: "docs", label: "Docs", badge: props.spec.docs?.trim() ? "1" : undefined },
   { id: "settings", label: "Pengaturan" },
 ]);
 
@@ -71,6 +73,7 @@ function setParams(rows: RequestSpec["params"]) {
         :collection-id="collectionId"
       />
       <ScriptEditor v-else-if="section === 'scripts'" :spec="spec" />
+      <DocsEditor v-else-if="section === 'docs'" :spec="spec" />
       <SettingsPanel v-else :spec="spec" />
     </div>
   </div>

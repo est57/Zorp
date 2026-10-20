@@ -11,6 +11,7 @@ pub mod request_builder;
 pub mod resolver;
 pub mod scripting;
 pub mod secrets;
+pub mod signing;
 pub mod timing;
 pub mod workspace_sync;
 

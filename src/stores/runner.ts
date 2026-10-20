@@ -75,9 +75,14 @@ export const useRunnerStore = defineStore("runner", () => {
     if (run?.status === "loading" && run.runId) await cancelRequest(run.runId);
   }
 
+  /** Shows a response that was not fetched now, such as a saved example. */
+  function show(tabId: string, response: ResponseData) {
+    runs[tabId] = { status: "done", response, finishedAt: Date.now() };
+  }
+
   function forget(tabId: string) {
     delete runs[tabId];
   }
 
-  return { get, send, cancel, forget };
+  return { get, send, cancel, show, forget };
 });

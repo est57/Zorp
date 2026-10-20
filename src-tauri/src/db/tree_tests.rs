@@ -6,6 +6,7 @@ use crate::models::request::{Auth, Body, HttpMethod, RequestSettings, RequestSpe
 
 fn spec(name: &str) -> RequestSpec {
     RequestSpec {
+        docs: String::new(),
         id: Uuid::now_v7(),
         name: name.into(),
         method: HttpMethod::Get,
@@ -100,4 +101,37 @@ fn newer_schema_is_refused_with_a_clear_message() {
         .unwrap();
     let err = super::open(&path).unwrap_err().to_string();
     assert!(err.contains("versi Zorp yang lebih baru"), "{err}");
+}
+
+#[test]
+fn examples_drop_session_headers_and_follow_their_request() {
+    use super::examples;
+    use crate::models::example::NewExample;
+    let conn = open_in_memory().unwrap();
+    let ws = workspace::current(&conn).unwrap().id;
+    let col = collections::create_collection(&conn, ws, "API").unwrap();
+    let saved = requests::save(&conn, spec("Login"), col.id, None).unwrap();
+    let input = |request_id| NewExample {
+        request_id,
+        name: "200 OK".into(),
+        status: 200,
+        status_text: "OK".into(),
+        headers: vec![
+            ("Content-Type".into(), "application/json".into()),
+            ("Set-Cookie".into(), "sid=abc".into()),
+        ],
+        body: "{}".into(),
+    };
+    let example = examples::create(&conn, input(saved.spec.id)).unwrap();
+    assert_eq!(
+        example.headers,
+        [("Content-Type".to_string(), "application/json".to_string())]
+    );
+    assert_eq!(examples::summaries(&conn, ws).unwrap()[0].status, 200);
+    assert!(
+        examples::create(&conn, input(Uuid::now_v7())).is_err(),
+        "request belum disimpan"
+    );
+    requests::delete(&conn, saved.spec.id).unwrap();
+    assert!(examples::get(&conn, example.id).is_err());
 }

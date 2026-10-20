@@ -31,9 +31,6 @@ const status = computed(() => {
     <SyncIndicator />
     <span class="flex-1" />
     <UpdateNotice />
-    <template v-if="app.info">
-      <span class="hidden tabular-nums sm:inline">Skema v{{ app.info.schemaVersion }}</span>
-      <span class="tabular-nums">Zorp {{ app.info.version }}</span>
-    </template>
+    <span v-if="app.info" class="tabular-nums">Zorp {{ app.info.version }}</span>
   </footer>
 </template>

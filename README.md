@@ -18,13 +18,14 @@
 - **Request HTTP**: semua method umum, query params yang tersinkron dengan URL, header, body JSON, raw, form-urlencoded, form-data, dan binary.
 - **GraphQL**: editor query dan variables, dengan autocomplete dan validasi dari skema hasil introspeksi.
 - **WebSocket dan SSE**: pilih **WS** atau **SSE** di pilihan method untuk membuka koneksi real-time, mengirim pesan WebSocket, dan melihat log pesan masuk dan keluar beserta waktunya. Keduanya mengikuti pengaturan proxy, sertifikat CA, dan sertifikat klien (mTLS). Untuk WebSocket, proxy yang didukung adalah `http://` dan `socks5://`/`socks5h://`.
-- **Koleksi**: folder bertingkat, drag-and-drop, multi-tab, dan riwayat request.
+- **Koleksi**: folder bertingkat, drag-and-drop, multi-tab yang tetap terbuka setelah aplikasi ditutup, dan riwayat request.
+- **Contoh respons dan dokumentasi**: respons bisa disimpan sebagai contoh di bawah request, dan setiap request punya tab Docs berbasis Markdown. Keduanya ikut tersimpan di folder workspace.
 - **Workspace**: beberapa workspace terpisah, masing-masing dengan koleksi, environment, riwayat, cookie, dan pengaturan jaringan sendiri. Workspace bisa disimpan sebagai folder file YAML agar dapat dibagikan lewat Git.
 - **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
-- **Auth**: Bearer, Basic, API key, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi.
+- **Auth**: Bearer, Basic, API key, Digest, JWT Bearer (HS/RS/ES), AWS Signature v4, OAuth 1.0, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi. Kolom kredensial disembunyikan secara default dan ditandai jika nilainya ditulis langsung.
 - **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya).
 - **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes.
-- **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
+- **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), spesifikasi OpenAPI 3.x dan Swagger 2.0 (file atau URL, JSON atau YAML), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
 - **Command palette** (`⌘K` / `Ctrl K`) untuk mencari request dan menjalankan aksi.
 - **Pembaruan otomatis**: Zorp memeriksa versi baru saat dibuka dan dapat memasangnya langsung dari aplikasi.
@@ -72,7 +73,9 @@ collections/<koleksi>/<nama-request>.request.yaml
 environments/<nama>.yaml
 ```
 
-Yang ikut tersimpan di folder: koleksi, folder, request, script, variabel koleksi, dan environment. Yang tetap lokal: riwayat, cookie, token OAuth, pengaturan proxy dan sertifikat, environment aktif, serta nilai variabel rahasia (tetap di keychain; file hanya mencatat nama variabelnya). Nilai auth yang ditulis langsung di request ikut tersimpan, jadi gunakan variabel rahasia seperti `{{token}}` untuk kredensial.
+Yang ikut tersimpan di folder: koleksi, folder, request, script, dokumentasi, contoh respons (tanpa header Set-Cookie dan Authorization), variabel koleksi, dan environment. Yang tetap lokal: riwayat, cookie, token OAuth, pengaturan proxy dan sertifikat, environment aktif, serta nilai variabel rahasia (tetap di keychain; file hanya mencatat nama variabelnya). Nilai auth yang ditulis langsung di request ikut tersimpan, jadi gunakan variabel rahasia seperti `{{token}}` untuk kredensial.
+
+Folder baru otomatis diberi `.gitignore` untuk file sistem seperti `.DS_Store`. Request yang berisi kredensial tertulis langsung (token, password, API key) ditandai di sidebar dan status bar agar dipindahkan ke variabel rahasia sebelum masuk Git.
 
 Jika ada file yang tidak bisa dibaca (misalnya konflik merge), sinkron dijeda dan status bar menampilkan **Sinkron dijeda**. Selama dijeda, file di folder tidak diubah. Setelah file diperbaiki, sinkron berlanjut otomatis.
 
