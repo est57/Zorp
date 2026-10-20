@@ -3,6 +3,8 @@ import { ref } from "vue";
 import type { Environment } from "@/bindings/Environment";
 import AppButton from "@/components/ui/AppButton.vue";
 import IconButton from "@/components/ui/IconButton.vue";
+import { useExport } from "@/composables/useExport";
+import { useImport } from "@/composables/useImport";
 import { useDialogsStore } from "@/stores/dialogs";
 import { useEnvironmentsStore } from "@/stores/environments";
 import { useToastsStore } from "@/stores/toasts";
@@ -11,6 +13,8 @@ import EnvironmentEditor from "./EnvironmentEditor.vue";
 const envs = useEnvironmentsStore();
 const dialogs = useDialogsStore();
 const toasts = useToastsStore();
+const exporter = useExport();
+const { environmentFromPostman } = useImport();
 
 const editing = ref<Environment | null>(null);
 const editorOpen = ref(false);
@@ -63,14 +67,23 @@ async function remove(env: Environment) {
         @click="edit(env)"
       />
       <IconButton
+        icon="download"
+        label="Ekspor ke Postman"
+        class="opacity-0 group-hover:opacity-100 focus:opacity-100"
+        @click="exporter.environmentToPostman(env)"
+      />
+      <IconButton
         icon="trash"
         label="Hapus environment"
         class="opacity-0 group-hover:opacity-100 focus:opacity-100"
         @click="remove(env)"
       />
     </div>
-    <div class="px-1.5 pt-2">
+    <div class="flex flex-wrap gap-1 px-1.5 pt-2">
       <AppButton icon="plus" @click="edit(null)">Environment baru</AppButton>
+      <AppButton variant="ghost" icon="download" @click="environmentFromPostman"
+        >Impor dari Postman</AppButton
+      >
     </div>
     <EnvironmentEditor v-model:open="editorOpen" :environment="editing" />
   </div>

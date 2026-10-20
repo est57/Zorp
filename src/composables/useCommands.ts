@@ -10,6 +10,7 @@ import { useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
 import { useUpdaterStore } from "@/stores/updater";
 import { specColor, specLabel } from "@/utils/request";
+import { useCollectionCommands } from "./useCollectionCommands";
 import { useImport } from "./useImport";
 import { useRequestActions } from "./useRequestActions";
 
@@ -34,7 +35,7 @@ export function useCommands() {
   const toasts = useToastsStore();
   const actions = useRequestActions();
   const tree = useTreeActions();
-  const { fromPostman } = useImport();
+  const { fromPostman, environmentFromPostman } = useImport();
 
   function locationOf(collectionId: string, folderId: string | null): string {
     const names: string[] = [];
@@ -95,6 +96,12 @@ export function useCommands() {
         run: () => (dialogs.curlImportOpen = true),
       },
       { id: "postman", group: "Aksi", label: "Impor koleksi Postman", run: fromPostman },
+      {
+        id: "postman-env",
+        group: "Aksi",
+        label: "Impor environment Postman",
+        run: environmentFromPostman,
+      },
       {
         id: "history",
         group: "Aksi",
@@ -168,18 +175,11 @@ export function useCommands() {
     return list;
   });
 
-  const runs = computed<Command[]>(() =>
-    collections.tree.collections.map((c) => ({
-      id: `run:${c.id}`,
-      group: "Aksi",
-      label: `Jalankan koleksi ${c.name}`,
-      run: () => (dialogs.runnerTarget = { collectionId: c.id, folderId: null, name: c.name }),
-    })),
-  );
+  const collectionCommands = useCollectionCommands();
 
   const all = computed(() => [
     ...actionsList.value,
-    ...runs.value,
+    ...collectionCommands.value,
     ...requests.value,
     ...environments.value,
   ]);

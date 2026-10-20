@@ -11,7 +11,7 @@ import { useImport } from "@/composables/useImport";
 import { useDialogsStore } from "@/stores/dialogs";
 
 const dialogs = useDialogsStore();
-const { fromPostman } = useImport();
+const { fromPostman, environmentFromPostman } = useImport();
 
 const item =
   "flex h-7 cursor-default items-center gap-2 rounded px-2 outline-none data-highlighted:bg-surface-2";
@@ -39,6 +39,10 @@ const item =
         <DropdownMenuItem :class="item" @select="fromPostman">
           <AppIcon name="file" :size="14" />
           Dari koleksi Postman (v2.1)
+        </DropdownMenuItem>
+        <DropdownMenuItem :class="item" @select="environmentFromPostman">
+          <AppIcon name="layers" :size="14" />
+          Environment Postman
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenuPortal>

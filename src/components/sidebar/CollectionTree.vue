@@ -2,6 +2,7 @@
 import type { Collection } from "@/bindings/Collection";
 import AppButton from "@/components/ui/AppButton.vue";
 import AppIcon from "@/components/ui/AppIcon.vue";
+import { useExport } from "@/composables/useExport";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
 import TreeBranch from "./TreeBranch.vue";
@@ -11,6 +12,7 @@ import { useTreeActions } from "./useTreeActions";
 const collections = useCollectionsStore();
 const actions = useTreeActions();
 const dialogs = useDialogsStore();
+const exporter = useExport();
 
 const menu = (c: Collection): MenuItem[] => [
   { label: "Request baru", icon: "plus", run: () => actions.newRequestIn(c.id, null) },
@@ -25,6 +27,7 @@ const menu = (c: Collection): MenuItem[] => [
     icon: "lock",
     run: () => (dialogs.authTarget = { kind: "collection", id: c.id }),
   },
+  { label: "Ekspor ke Postman", icon: "download", run: () => exporter.collectionToPostman(c) },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("collection", c.id, c.name) },
   {
     label: "Hapus",

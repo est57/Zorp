@@ -12,3 +12,12 @@ pub struct ImportReport {
     pub requests: u32,
     pub warnings: Vec<String>,
 }
+
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ExportReport {
+    pub requests: u32,
+    /// Requests left out because Postman collections cannot represent them.
+    pub skipped: Vec<String>,
+}

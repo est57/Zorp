@@ -113,7 +113,8 @@ fn oauth2(params: Option<&Value>, warnings: &mut Vec<String>, owner: &str) -> Op
         client_id: get("clientId"),
         client_secret: get("clientSecret"),
         scope: get("scope"),
-        use_pkce: true,
+        // Postman marks PKCE with its own grant name; a plain authorization code grant has none.
+        use_pkce: get("grant_type") != "authorization_code",
         client_auth: if get("client_authentication") == "body" {
             ClientAuth::Body
         } else {

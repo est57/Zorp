@@ -23,7 +23,7 @@
 - **Auth**: Bearer, Basic, API key, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi.
 - **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya).
 - **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes.
-- **Impor dan ekspor**: koleksi Postman v2.1, perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go.
+- **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
 - **Command palette** (`⌘K` / `Ctrl K`) untuk mencari request dan menjalankan aksi.
 - **Pembaruan otomatis**: Zorp memeriksa versi baru saat dibuka dan dapat memasangnya langsung dari aplikasi.

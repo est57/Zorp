@@ -1,6 +1,8 @@
 import { open } from "@tauri-apps/plugin-dialog";
+import { importEnvironment } from "@/api/exporters";
 import { importPostman } from "@/api/importers";
 import { useCollectionsStore } from "@/stores/collections";
+import { useEnvironmentsStore } from "@/stores/environments";
 import { useToastsStore } from "@/stores/toasts";
 
 export function useImport() {
@@ -27,5 +29,20 @@ export function useImport() {
     }
   }
 
-  return { fromPostman };
+  async function environmentFromPostman() {
+    const path = await open({
+      multiple: false,
+      filters: [{ name: "Environment Postman", extensions: ["json"] }],
+    });
+    if (typeof path !== "string") return;
+    const env = await toasts.guard(() => importEnvironment(path));
+    if (!env) return;
+    await useEnvironmentsStore().load();
+    toasts.push(
+      `Environment "${env.name}" diimpor dengan ${env.variables.length} variabel`,
+      "success",
+    );
+  }
+
+  return { fromPostman, environmentFromPostman };
 }

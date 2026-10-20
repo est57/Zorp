@@ -1,5 +1,6 @@
 pub mod client_pool;
 pub mod cookies;
+pub mod exporters;
 pub mod http_client;
 pub mod http_engine;
 pub mod importers;

@@ -2,6 +2,7 @@ pub mod app;
 pub mod collections;
 pub mod cookies;
 pub mod environments;
+pub mod export;
 pub mod history;
 pub mod http;
 pub mod import;
