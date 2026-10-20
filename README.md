@@ -25,6 +25,7 @@
 - **Auth**: Bearer, Basic, API key, Digest, JWT Bearer (HS/RS/ES), AWS Signature v4, OAuth 1.0, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi. Kolom kredensial disembunyikan secara default dan ditandai jika nilainya ditulis langsung.
 - **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya).
 - **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes.
+- **Peringatan kredensial**: request yang berisi token, password, atau API key yang ditulis langsung ditandai di sidebar dan status bar, agar dipindahkan ke variabel rahasia sebelum dibagikan.
 - **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), spesifikasi OpenAPI 3.x dan Swagger 2.0 (file atau URL, JSON atau YAML), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
 - **Command palette** (`⌘K` / `Ctrl K`) untuk mencari request dan menjalankan aksi.
@@ -56,6 +57,37 @@ Mulai versi 0.2.0, Zorp memeriksa versi baru beberapa detik setelah dibuka. Jika
 
 Setiap pembaruan ditandatangani dan diverifikasi oleh aplikasi sebelum dipasang. Versi 0.1.0 belum memiliki fitur ini, sehingga perlu diperbarui manual satu kali.
 
+Di macOS, setelah pembaruan, sistem bisa kembali meminta izin Keychain saat Zorp membaca variabel rahasia. Klik **Always Allow** dan masukkan password login Mac. Ini terjadi karena aplikasi belum ditandatangani dengan Apple Developer ID.
+
+## Panduan singkat
+
+### Impor OpenAPI / Swagger
+
+Klik ikon unduh di header **Koleksi**, lalu pilih **OpenAPI / Swagger**. Pilih file JSON atau YAML, atau tempel URL spesifikasi, lalu periksa ringkasannya sebelum mengimpor.
+
+- Request dikelompokkan ke folder berdasarkan tag atau path.
+- Base URL disimpan sebagai variabel koleksi `{{baseUrl}}`, dan parameter path seperti `{id}` menjadi `{{id}}`.
+- Body diisi dari contoh atau skema. Auth koleksi dibuat dari `securitySchemes` dan selalu memakai variabel, misalnya `{{token}}`.
+- URL diunduh oleh backend dengan pengaturan proxy dan sertifikat yang berlaku. Ukuran dokumen maksimal 20 MB.
+
+### Contoh respons dan dokumentasi
+
+- Setelah request yang tersimpan dikirim, klik **Simpan sebagai contoh** di header Response. Contoh muncul di bawah request di sidebar dan dibuka sebagai tab hanya-baca. Hanya respons teks hingga 1 MB yang bisa disimpan, dan header `Set-Cookie`, `Cookie`, serta `Authorization` dibuang.
+- Tab **Docs** pada request menerima Markdown, lengkap dengan pratinjau. HTML mentah tidak dirender, dan link dibuka di browser sistem.
+
+### Jenis auth
+
+| Jenis | Catatan |
+|---|---|
+| Bearer, Basic, API key | Dikirim lewat header, atau query untuk API key. |
+| Digest | Request dikirim sekali tanpa kredensial; jika server membalas tantangan Digest, Zorp menjawabnya sekali (MD5 atau SHA-256). Belum mendukung body multipart atau file. |
+| JWT Bearer | Token ditandatangani ulang setiap pengiriman (HS256 sampai ES384). Klaim `iat` ditambahkan jika belum ada. |
+| AWS Signature v4 | Mengisi access key, secret key, session token (opsional), region, dan service. |
+| OAuth 1.0 | HMAC-SHA1, HMAC-SHA256, atau PLAINTEXT. |
+| OAuth 2.0 | Authorization Code dengan PKCE dan Client Credentials; token disimpan di keychain dan diperbarui otomatis. |
+
+Untuk WebSocket, auth yang diterapkan adalah Bearer, Basic, API key, JWT, dan OAuth 2.0.
+
 ## Workspace di folder (Git)
 
 Pilih nama workspace di title bar, lalu:
@@ -71,13 +103,16 @@ collections/<koleksi>/collection.yaml
 collections/<koleksi>/<folder>/folder.yaml
 collections/<koleksi>/<nama-request>.request.yaml
 environments/<nama>.yaml
+.gitignore
 ```
+
+Dokumentasi dan contoh respons disimpan di dalam file `.request.yaml` milik request tersebut, sehingga ikut di-review bersama perubahan request.
 
 Yang ikut tersimpan di folder: koleksi, folder, request, script, dokumentasi, contoh respons (tanpa header Set-Cookie dan Authorization), variabel koleksi, dan environment. Yang tetap lokal: riwayat, cookie, token OAuth, pengaturan proxy dan sertifikat, environment aktif, serta nilai variabel rahasia (tetap di keychain; file hanya mencatat nama variabelnya). Nilai auth yang ditulis langsung di request ikut tersimpan, jadi gunakan variabel rahasia seperti `{{token}}` untuk kredensial.
 
 Folder baru otomatis diberi `.gitignore` untuk file sistem seperti `.DS_Store`. Request yang berisi kredensial tertulis langsung (token, password, API key) ditandai di sidebar dan status bar agar dipindahkan ke variabel rahasia sebelum masuk Git.
 
-Jika ada file yang tidak bisa dibaca (misalnya konflik merge), sinkron dijeda dan status bar menampilkan **Sinkron dijeda**. Selama dijeda, file di folder tidak diubah. Setelah file diperbaiki, sinkron berlanjut otomatis.
+Jika ada file yang tidak bisa dibaca, misalnya karena konflik merge yang belum diselesaikan (status bar menyebut file mana), sinkron dijeda dan status bar menampilkan **Sinkron dijeda**. Selama dijeda, file di folder tidak diubah. Setelah file diperbaiki, sinkron berlanjut otomatis.
 
 ## Shortcut
 
@@ -107,6 +142,8 @@ pnpm install
 pnpm tauri dev
 ```
 
+Build pengembangan memakai database terpisah (`zorp-dev.db`) di folder data aplikasi, sehingga tidak mengubah database milik Zorp yang terpasang.
+
 UI juga bisa dibuka di browser biasa dengan data contoh, tanpa backend, melalui `http://localhost:1420/?mock` saat `pnpm dev` berjalan. Mode ini hanya tersedia saat pengembangan.
 
 Pemeriksaan yang juga dijalankan oleh CI:
@@ -124,16 +161,22 @@ Tipe TypeScript di `src/bindings` dibuat otomatis dari struct Rust saat `cargo t
 ### Struktur proyek
 
 ```
-src/                 Frontend Vue 3 + TypeScript
-  api/               Wrapper perintah Tauri
-  components/        Komponen UI per area (request, response, sidebar, runner, settings)
-  stores/            State Pinia
-  utils/             Parser cURL, generator snippet, util URL
-src-tauri/           Backend Rust
-  src/commands/      Perintah IPC
-  src/pipeline/      Alur kirim: pre-request script, kirim, test script
-  src/services/      Mesin HTTP, resolver variabel, OAuth, script, cookie, jaringan, WebSocket dan SSE
-  src/db/            Penyimpanan SQLite dan migrasi
+src/                    Frontend Vue 3 + TypeScript
+  api/                  Wrapper perintah Tauri
+  components/           Komponen UI per area (layout, request, response, sidebar, runner, settings)
+  composables/          Logika UI bersama: perintah, impor, workspace, contoh respons
+  stores/               State Pinia, termasuk sesi tab per workspace
+  utils/                Parser cURL, generator snippet, Markdown, deteksi kredensial
+  dev/                  Backend tiruan untuk mode ?mock (hanya saat pengembangan)
+src-tauri/              Backend Rust
+  migrations/           Migrasi skema SQLite
+  src/commands/         Perintah IPC
+  src/pipeline/         Alur kirim: pre-request script, auth, kirim, test script
+  src/services/         Mesin HTTP, resolver variabel, OAuth, signing (JWT, AWS, OAuth 1.0, Digest),
+                        script, cookie, jaringan, WebSocket dan SSE, impor dan ekspor
+  src/services/workspace_sync/  Format YAML folder workspace: tulis, baca, validasi
+  src/sync/             Sinkron otomatis antara aplikasi dan folder workspace
+  src/db/               Penyimpanan SQLite
 ```
 
 ## Keamanan
@@ -142,6 +185,9 @@ src-tauri/           Backend Rust
 - Nilai rahasia (variabel secret, token OAuth, password proxy) disimpan di keychain sistem dan tidak pernah ditulis ke database.
 - Script berjalan di runtime QuickJS yang terisolasi, tanpa akses file, jaringan, atau sistem, dengan batas waktu 5 detik dan memori 64 MB.
 - Webview memakai Content Security Policy yang ketat dan permission Tauri yang minimal.
+- Folder workspace tidak pernah berisi nilai variabel rahasia. File yang dibaca dari folder dibatasi ukurannya, symbolic link dilewati, dan file yang tidak valid menjeda sinkron tanpa menimpa apa pun.
+- Dokumentasi Markdown dirender tanpa HTML mentah, dan hanya link `http`/`https` yang bisa dibuka.
+- Penandatanganan JWT, AWS Signature v4, OAuth 1.0, dan Digest dilakukan di backend Rust.
 
 ## Rilis
 
@@ -161,7 +207,7 @@ Simpan cadangan kedua file tersebut di tempat aman. Jika kunci hilang, aplikasi 
 1. Samakan versi di `package.json`, `src-tauri/Cargo.toml`, dan `src-tauri/tauri.conf.json`.
 2. Buat tag dengan format `v<versi>`, lalu push:
    ```bash
-   git tag -a v0.2.0 -m "Zorp v0.2.0" && git push origin v0.2.0
+   git tag -a v0.6.0 -m "Zorp v0.6.0" && git push origin v0.6.0
    ```
 3. Workflow **Release** lebih dulu menjalankan pemeriksaan singkat (job `preflight`): tag harus sama dengan versi aplikasi, dan kedua secret harus bisa dipakai untuk menandatangani. Jika lolos, workflow membuat installer untuk macOS, Windows, dan Linux, beserta `latest.json` untuk pembaruan otomatis, sebagai draft release.
 4. Periksa draft di halaman Releases, lalu klik **Publish release**. Aplikasi yang sudah terpasang baru melihat versi baru setelah release diterbitkan.
@@ -177,7 +223,7 @@ Simpan cadangan kedua file tersebut di tempat aman. Jika kunci hilang, aplikasi 
 Untuk mengulang rilis dengan versi yang sama setelah memperbaiki secret, buka run yang gagal di tab **Actions**, lalu klik **Re-run all jobs**. Jika perbaikannya membutuhkan perubahan kode, hapus draft release dan tag lamanya, lalu buat tag di commit terbaru:
 
 ```bash
-git push origin :refs/tags/v0.2.0 && git tag -fa v0.2.0 -m "Zorp v0.2.0" && git push origin v0.2.0
+git push origin :refs/tags/v0.6.0 && git tag -fa v0.6.0 -m "Zorp v0.6.0" && git push origin v0.6.0
 ```
 
 ## Lisensi

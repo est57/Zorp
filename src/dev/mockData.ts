@@ -96,7 +96,7 @@ export const tree: CollectionTree = {
         auth: { type: "none" },
         body: {
           type: "json",
-          text: '{\n  "email": "rani@contoh.id",\n  "password": "contoh123"\n}',
+          text: '{\n  "email": "rani@contoh.id",\n  "password": "{{login_password}}"\n}',
         },
       }),
     },
