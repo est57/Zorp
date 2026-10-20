@@ -47,3 +47,4 @@ CLAUDE.local.md
 # Test output and local sample data
 coverage
 samples/
+src-tauri/bindings

@@ -8,7 +8,8 @@ pm.variables.replaceIn = (text) =>
 /** Accepts a URL string or a Postman request object; variables are filled in. */
 function __normalizeRequest(request) {
   const fill = pm.variables.replaceIn;
-  if (typeof request === "string") return { method: "GET", url: fill(request), headers: [], body: null };
+  if (typeof request === "string")
+    return { method: "GET", url: fill(request), headers: [], body: null };
   const source = request.header ?? request.headers ?? {};
   const headers = Array.isArray(source)
     ? source.filter((h) => !h.disabled).map((h) => [fill(h.key), fill(h.value ?? "")])
