@@ -132,7 +132,7 @@ async fn websocket_rejects_http_urls() {
         emit,
     )
     .await;
-    assert!(kinds(&log)[0].starts_with("Error:URL tidak valid"));
+    assert!(kinds(&log)[0].contains("pilih SSE"), "{:?}", kinds(&log));
 }
 
 #[tokio::test]
@@ -166,4 +166,24 @@ async fn sse_streams_named_events_until_server_ends() {
     );
     assert_eq!((events[2].1.as_str(), events[2].2.as_deref()), ("2", None));
     assert!(matches!(events[3].0, RealtimeKind::Close));
+}
+
+#[tokio::test]
+async fn sse_points_websocket_urls_to_ws_mode() {
+    let (log, emit) = recorder();
+    let (_tx, rx) = mpsc::unbounded_channel();
+    let client = crate::services::http_client::new_client(true, true, None).unwrap();
+    let request = spec(
+        "wss://echo.test".into(),
+        crate::models::realtime::RequestMode::Sse,
+    );
+    sse_client::run(
+        client,
+        request,
+        crate::models::request::Auth::None,
+        rx,
+        emit,
+    )
+    .await;
+    assert!(kinds(&log)[0].contains("pilih WS"), "{:?}", kinds(&log));
 }

@@ -19,9 +19,14 @@ pub fn handshake_request(
     let mut url =
         url::Url::parse(spec.url.trim()).map_err(|e| AppError::InvalidUrl(e.to_string()))?;
     if !matches!(url.scheme(), "ws" | "wss") {
-        return Err(AppError::InvalidUrl(
-            "URL WebSocket harus diawali ws:// atau wss://".into(),
-        ));
+        let hint = if matches!(url.scheme(), "http" | "https") {
+            " Untuk stream http:// atau https://, pilih SSE."
+        } else {
+            ""
+        };
+        return Err(AppError::InvalidUrl(format!(
+            "URL WebSocket harus diawali ws:// atau wss://.{hint}"
+        )));
     }
     if let Auth::ApiKey {
         key,

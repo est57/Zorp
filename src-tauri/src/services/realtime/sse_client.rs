@@ -17,6 +17,18 @@ pub async fn run(
     mut outgoing: UnboundedReceiver<Outgoing>,
     emit: Emit,
 ) {
+    let scheme = spec
+        .url
+        .trim()
+        .split("://")
+        .next()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    if scheme == "ws" || scheme == "wss" {
+        let message =
+            "SSE memakai URL http:// atau https://. Untuk alamat ws:// atau wss://, pilih WS.";
+        return emit(RealtimeKind::Error, message.into(), None, false);
+    }
     // A stream stays open indefinitely, so the request timeout must not apply.
     spec.settings.timeout_ms = u32::MAX;
     let builder = match request_builder::build(&client, &spec, &auth) {
