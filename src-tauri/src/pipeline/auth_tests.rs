@@ -23,6 +23,8 @@ fn state() -> AppState {
 
 fn spec(url: String, auth: Auth) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "Auth".into(),

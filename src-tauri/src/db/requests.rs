@@ -129,6 +129,8 @@ mod tests {
         let col = collections::create_collection(&conn, ws, "API").unwrap();
         let folder = crate::db::folders::create_folder(&conn, col.id, None, "Users").unwrap();
         let spec = RequestSpec {
+            asserts: Vec::new(),
+            vars: Vec::new(),
             docs: String::new(),
             id: Uuid::now_v7(),
             name: "List".into(),

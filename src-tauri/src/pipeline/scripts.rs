@@ -17,7 +17,7 @@ use crate::state::AppState;
 
 async fn run(state: &AppState, input: ScriptInput) -> AppResult<ScriptOutput> {
     let host = PipelineHost::new(state).map(|h| Arc::new(h) as Arc<dyn ScriptHost>);
-    tauri::async_runtime::spawn_blocking(move || scripting::run_with_host(&input, host))
+    tokio::task::spawn_blocking(move || scripting::run_with_host(&input, host))
         .await
         .map_err(|e| AppError::Internal(e.to_string()))?
 }
@@ -39,6 +39,13 @@ fn apply_changes(
         state.secrets.as_ref(),
         &out.env,
         &out.env_unset,
+    )?;
+    db::globals::apply_changes(
+        &conn,
+        state.workspace_id(),
+        state.secrets.as_ref(),
+        &out.glob,
+        &out.glob_unset,
     )?;
     if let Some(collection_id) = ctx.collection_id {
         db::variables::apply_collection_changes(&conn, collection_id, &out.coll, &out.coll_unset)?;
@@ -66,6 +73,7 @@ fn input(
         variables: ctx.variable_map(locals),
         environment: ctx.environment.iter().cloned().collect(),
         collection_variables: ctx.collection.iter().cloned().collect(),
+        globals: ctx.globals.iter().cloned().collect(),
         has_environment: ctx.has_environment,
     }
 }

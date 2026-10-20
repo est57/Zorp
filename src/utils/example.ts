@@ -12,7 +12,7 @@ export function exampleResponse(example: ResponseExample, url: string): Response
     timing: { dnsMs: null, connectMs: null, ttfbMs: 0, downloadMs: 0, totalMs: 0 },
     httpVersion: "",
     url,
-    script: { tests: [], logs: [], errors: [], variablesChanged: false },
+    script: { tests: [], logs: [], errors: [], variablesChanged: false, captured: [] },
   };
 }
 

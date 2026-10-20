@@ -23,6 +23,7 @@ fn input(kind: ScriptKind, script: &str) -> ScriptInput {
         variables: HashMap::from([("base".into(), "https://api.test".into())]),
         environment: HashMap::from([("token".into(), "old".into())]),
         collection_variables: HashMap::new(),
+        globals: HashMap::from([("app".into(), "zorp".into())]),
         has_environment: true,
     }
 }
@@ -190,4 +191,16 @@ fn send_request_is_limited_and_unavailable_without_host() {
     ))
     .unwrap();
     assert!(out.error.unwrap().contains("tidak tersedia"));
+}
+
+#[test]
+fn globals_can_be_read_and_changed() {
+    let out = run(&input(
+        ScriptKind::PreRequest,
+        r#"pm.globals.set("seen", pm.globals.get("app") + "!"); pm.globals.unset("old");"#,
+    ))
+    .unwrap();
+    assert_eq!(out.error, None);
+    assert_eq!(out.glob.get("seen").map(String::as_str), Some("zorp!"));
+    assert_eq!(out.glob_unset, ["old"]);
 }

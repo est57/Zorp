@@ -1,5 +1,7 @@
 mod context;
 mod digest;
+mod rules;
+pub mod runner;
 mod script_host;
 mod script_io;
 mod scripts;
@@ -42,12 +44,13 @@ pub async fn execute_with_data(
     ctx.data = data;
     let mut report = ScriptReport::default();
     let locals = match scripts::pre_request(state, &mut ctx, &mut spec, &mut report).await {
-        Ok(locals) => locals,
+        Ok(locals) => rules::pre_request(&ctx, &spec, locals),
         Err(e) => return (spec, Err(e)),
     };
     let result = send(state, &spec, &ctx, &locals, request_id, progress).await;
     let result = match result {
         Ok(mut response) => {
+            rules::after_response(state, &mut ctx, &spec, &response, &locals, &mut report);
             scripts::test(state, &mut ctx, &spec, &response, &mut report).await;
             response.script = report;
             Ok(response)
@@ -121,5 +124,7 @@ async fn send(
 mod auth_tests;
 #[cfg(test)]
 mod chain_tests;
+#[cfg(test)]
+mod rules_tests;
 #[cfg(test)]
 mod tests;

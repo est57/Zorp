@@ -5,16 +5,42 @@ description = "Desktop API client"
 license = "MIT"
 authors = ["Zorp"]
 edition = "2024"
+default-run = "zorp"
 
 [lib]
 name = "zorp_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[[bin]]
+name = "zorp"
+path = "src/main.rs"
+required-features = ["gui"]
+
+# Headless runner for CI: `cargo build --release --no-default-features --bin zorp-cli`.
+[[bin]]
+name = "zorp-cli"
+path = "src/bin/zorp-cli.rs"
+
+[features]
+default = ["gui"]
+# The desktop app. Without it only the core and the command-line runner are built,
+# with no dependency on a webview or the system keychain.
+gui = [
+    "dep:tauri",
+    "dep:tauri-build",
+    "dep:tauri-plugin-dialog",
+    "dep:tauri-plugin-opener",
+    "dep:tauri-plugin-updater",
+    "dep:tauri-plugin-process",
+    "dep:keyring",
+    "dep:notify-debouncer-mini",
+]
+
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2", features = [], optional = true }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = [], optional = true }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 rusqlite = { version = "0.40.2", features = ["bundled", "hooks"] }
@@ -24,32 +50,36 @@ uuid = { version = "1.28.0", features = ["v4", "v7", "serde"] }
 ts-rs = { version = "12.0.1", features = ["uuid-impl"] }
 reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json", "multipart", "form", "gzip", "brotli", "deflate", "charset", "http2", "cookies", "socks"] }
 url = "2.5.8"
-tauri-plugin-dialog = "2.8.3"
+tauri-plugin-dialog = { version = "2.8.3", optional = true }
 base64 = "0.23.1"
-keyring = "4.2.0"
-tokio = { version = "1.53.3", features = ["sync", "macros", "net", "io-util", "time"] }
+keyring = { version = "4.2.0", optional = true }
+tokio = { version = "1.53.3", features = ["sync", "macros", "net", "io-util", "time", "rt-multi-thread"] }
 sha2 = "0.11.1"
 getrandom = "0.4.3"
-tauri-plugin-opener = "2.7.2"
+tauri-plugin-opener = { version = "2.7.2", optional = true }
 cookie_store = "0.22.1"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
 rquickjs = "0.14.0"
-tauri-plugin-updater = "2.14.0"
-tauri-plugin-process = "2.4.0"
+tauri-plugin-updater = { version = "2.14.0", optional = true }
+tauri-plugin-process = { version = "2.4.0", optional = true }
 tokio-tungstenite = { version = "0.30.0", features = ["rustls-tls-native-roots"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 rustls = { version = "0.23.46", default-features = false, features = ["aws_lc_rs", "std"] }
 rustls-native-certs = "0.8"
 rustls-pki-types = { version = "1", features = ["std"] }
 serde-saphyr = "2.0.0"
-notify-debouncer-mini = "0.7.0"
+notify-debouncer-mini = { version = "0.7.0", optional = true }
 hmac = "0.13"
 sha1 = "0.11"
 md-5 = "0.11"
 hex = "0.4"
 jsonwebtoken = { version = "10", default-features = false, features = ["aws_lc_rs", "use_pem"] }
 csv = "1"
+regex-lite = "0.1"
+hyper = { version = "1.12", features = ["server", "http1"] }
+hyper-util = { version = "0.1.21", features = ["tokio"] }
+http-body-util = "0.1.5"
 
 [profile.release]
 codegen-units = 1
@@ -63,3 +93,6 @@ tempfile = "3.27.0"
 tokio = { version = "1.53.3", features = ["rt-multi-thread", "macros", "net", "io-util"] }
 tokio-rustls = "0.26"
 wiremock = "0.6.5"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.60.2", features = ["Win32_System_Console"] }

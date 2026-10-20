@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::models::realtime::RequestMode;
 use crate::models::request::{Auth, Body, HttpMethod, KeyValue, RequestSettings};
+use crate::models::rules::{Assertion, VarRule};
 use crate::models::script::Scripts;
 
 pub const FORMAT_VERSION: u32 = 1;
@@ -70,6 +71,10 @@ pub struct RequestFile {
     pub settings: RequestSettings,
     #[serde(default, skip_serializing_if = "is_empty_scripts")]
     pub scripts: Scripts,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub asserts: Vec<Assertion>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub vars: Vec<VarRule>,
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub docs: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -96,6 +101,13 @@ pub struct EnvironmentFile {
     pub id: Uuid,
     pub name: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub variables: Vec<EnvVariable>,
+}
+
+/// Workspace-wide variables, kept beside the environments as `_global.yaml`.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GlobalFile {
+    #[serde(default)]
     pub variables: Vec<EnvVariable>,
 }
 

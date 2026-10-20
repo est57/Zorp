@@ -9,7 +9,7 @@ use crate::services::secrets::{SecretStore, env_account};
 pub fn list(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Environment>> {
     let mut stmt = conn.prepare(
         "SELECT id, name, variables_json, is_active FROM environments
-         WHERE workspace_id = ?1 ORDER BY name",
+         WHERE workspace_id = ?1 AND is_global = 0 ORDER BY name",
     )?;
     let rows = stmt.query_map([workspace_id.to_string()], |row| {
         Ok((
@@ -33,7 +33,7 @@ pub fn list(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Environment>
     Ok(items)
 }
 
-fn stored_variables(conn: &Connection, id: Uuid) -> AppResult<Vec<Variable>> {
+pub(super) fn stored_variables(conn: &Connection, id: Uuid) -> AppResult<Vec<Variable>> {
     let json: Option<String> = conn
         .query_row(
             "SELECT variables_json FROM environments WHERE id = ?1",
@@ -119,9 +119,14 @@ pub fn active_values(
     workspace_id: Uuid,
     secrets: &dyn SecretStore,
 ) -> AppResult<Vec<(String, String)>> {
-    let Some(env) = list(conn, workspace_id)?.into_iter().find(|e| e.is_active) else {
-        return Ok(Vec::new());
-    };
+    match list(conn, workspace_id)?.into_iter().find(|e| e.is_active) {
+        Some(env) => values_of(env, secrets),
+        None => Ok(Vec::new()),
+    }
+}
+
+/// Enabled variables of an environment, with secrets loaded from the keychain.
+pub fn values_of(env: Environment, secrets: &dyn SecretStore) -> AppResult<Vec<(String, String)>> {
     let mut values = Vec::new();
     for var in env.variables.into_iter().filter(|v| v.enabled) {
         let value = if var.secret {

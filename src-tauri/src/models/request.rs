@@ -5,6 +5,7 @@ use uuid::Uuid;
 use super::auth::{AwsSigV4Config, JwtConfig, OAuth1Config};
 use super::oauth::OAuth2Config;
 use super::realtime::RequestMode;
+use super::rules::{Assertion, VarRule};
 use super::script::Scripts;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -165,6 +166,12 @@ pub struct RequestSpec {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     #[ts(as = "Option<String>", optional)]
     pub docs: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<Assertion>>", optional)]
+    pub asserts: Vec<Assertion>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[ts(as = "Option<Vec<VarRule>>", optional)]
+    pub vars: Vec<VarRule>,
 }
 
 impl HttpMethod {

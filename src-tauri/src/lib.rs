@@ -1,15 +1,26 @@
+// Without the desktop app, parts of the core used only by its commands go unused.
+#![cfg_attr(not(feature = "gui"), allow(dead_code, unused_imports))]
+
+pub mod cli;
+#[cfg(feature = "gui")]
 mod commands;
 mod db;
 mod error;
 mod models;
 mod pipeline;
 mod services;
+#[cfg(feature = "gui")]
 mod startup;
 mod state;
+#[cfg(feature = "gui")]
 mod sync;
 
+#[cfg(feature = "gui")]
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    if let Some(code) = cli::try_run() {
+        std::process::exit(code);
+    }
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
@@ -24,6 +35,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
             commands::app::open_link,
+            commands::mock::mock_routes,
+            commands::mock::list_mocks,
+            commands::mock::start_mock,
+            commands::mock::stop_mock,
             commands::workspaces::list_workspaces,
             commands::workspaces::create_workspace,
             commands::workspaces::switch_workspace,
@@ -51,6 +66,8 @@ pub fn run() {
             commands::environments::save_environment,
             commands::environments::delete_environment,
             commands::environments::set_active_environment,
+            commands::environments::get_globals,
+            commands::environments::save_globals,
             commands::history::list_history,
             commands::history::clear_history,
             commands::import::import_postman,

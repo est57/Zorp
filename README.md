@@ -21,13 +21,16 @@
 - **Koleksi**: folder bertingkat, drag-and-drop, multi-tab yang tetap terbuka setelah aplikasi ditutup, dan riwayat request.
 - **Contoh respons dan dokumentasi**: respons bisa disimpan sebagai contoh di bawah request, dan setiap request punya tab Docs berbasis Markdown. Keduanya ikut tersimpan di folder workspace.
 - **Workspace**: beberapa workspace terpisah, masing-masing dengan koleksi, environment, riwayat, cookie, dan pengaturan jaringan sendiri. Workspace bisa disimpan sebagai folder file YAML agar dapat dibagikan lewat Git.
-- **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
+- **Environment dan variabel global**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan, ditambah variabel global yang berlaku di semua koleksi. Nilai rahasia disimpan di keychain sistem.
+- **Assert dan Vars**: tab Assert memeriksa respons tanpa script (misalnya `res.status` sama dengan 200), dan tab Vars menyimpan nilai dari respons ke variabel (misalnya `res.body.token`).
 - **Auth**: Bearer, Basic, API key, Digest, JWT Bearer (HS/RS/ES), AWS Signature v4, OAuth 1.0, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi. Kolom kredensial disembunyikan secara default dan ditandai jika nilainya ditulis langsung.
 - **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya), di level request, folder, dan koleksi.
 - **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes, sekali atau berulang dengan data dari file CSV atau JSON, lalu mengekspor laporannya ke HTML atau JSON.
 - **Peringatan kredensial**: request yang berisi token, password, atau API key yang ditulis langsung ditandai di sidebar dan status bar, agar dipindahkan ke variabel rahasia sebelum dibagikan.
 - **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), spesifikasi OpenAPI 3.x dan Swagger 2.0 (file atau URL, JSON atau YAML), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
+- **Mock server lokal**: menyajikan contoh respons yang tersimpan di `127.0.0.1`, untuk mengembangkan aplikasi sebelum API-nya siap.
+- **CLI runner**: `zorp-cli run <folder>` menjalankan koleksi dari folder workspace di terminal atau CI, dengan laporan teks, JSON, atau JUnit. Biner CLI berdiri sendiri tanpa aplikasi desktop.
 - **Command palette** (`⌘K` / `Ctrl K`) untuk mencari request dan menjalankan aksi.
 - **Pembaruan otomatis**: Zorp memeriksa versi baru saat dibuka dan dapat memasangnya langsung dari aplikasi.
 
@@ -87,6 +90,48 @@ Klik kanan koleksi atau folder, lalu pilih **Pengaturan**. Dialog ini berisi tab
 ### Runner dengan data
 
 Pada dialog **Jalankan**, pilih **File CSV / JSON** di bagian Data iterasi. File CSV memakai baris pertama sebagai nama kolom; file JSON berupa array objek. Setiap baris menjadi satu iterasi, dan setiap kolom menjadi variabel yang menimpa environment selama iterasi itu, misalnya `{{email}}`. Hasil dikelompokkan per iterasi dan bisa diekspor lewat **Ekspor laporan**. File data hanya dibaca saat runner berjalan dan tidak disimpan ke workspace.
+
+### Assert dan Vars
+
+- Tab **Assert** pada request berisi baris ekspresi, operator, dan nilai. Ekspresi yang didukung: `res.status`, `res.statusText`, `res.responseTime`, `res.headers['nama']`, dan `res.body.path.ke[0].field`. Operatornya: sama dengan, tidak sama dengan, lebih dari, minimal, kurang dari, maksimal, berisi, tidak berisi, cocok regex, ada, tidak ada, dan bertipe. Hasilnya tampil per baris dan juga di tab Tes, collection runner, serta CLI.
+- Tab **Vars** punya dua bagian. **Sebelum request** mengisi variabel untuk request itu saja. **Setelah respons** mengambil nilai dari respons dengan ekspresi yang sama, lalu menyimpannya ke variabel koleksi atau environment aktif.
+- Urutannya: script pre-request, Vars sebelum request, kirim, Assert, Vars setelah respons, lalu test script.
+
+### Variabel global
+
+Baris **Global** di atas daftar environment berisi variabel yang berlaku di semua koleksi workspace tanpa memilih environment. Prioritasnya paling rendah: koleksi, environment, data iterasi, dan variabel script menimpanya. Di script, variabel ini tersedia sebagai `pm.globals`. Variabel global non-rahasia ikut tersimpan di folder workspace sebagai `environments/_global.yaml`.
+
+### Mock server
+
+Klik kanan koleksi, lalu pilih **Mock server**. Zorp menyajikan contoh respons yang tersimpan di `http://127.0.0.1:4010` (port bisa diubah). Rute diambil dari method dan path request setelah base URL, dan bagian seperti `{{id}}` menjadi parameter. Jika satu request punya beberapa contoh, contoh pertama yang dipakai; header `x-zorp-example` bisa memilih contoh lain berdasarkan nama. Request tanpa contoh dibalas 501. Mock server hanya mendengarkan di komputer ini, mengizinkan akses CORS dari browser, dan mencatat setiap request di dialognya.
+
+### CLI runner
+
+Koleksi di folder workspace bisa dijalankan dari terminal atau CI. Unduh `zorp-cli` untuk sistem Anda dari halaman [Releases](https://github.com/est57/Zorp/releases). Biner ini berdiri sendiri, tanpa aplikasi desktop, webview, atau keychain, sehingga cocok untuk CI.
+
+| Sistem | File |
+|---|---|
+| Linux x86_64 (glibc 2.35 ke atas, misalnya Ubuntu 22.04) | `zorp-cli-x86_64-unknown-linux-gnu` |
+| macOS Apple Silicon | `zorp-cli-aarch64-apple-darwin` |
+| macOS Intel | `zorp-cli-x86_64-apple-darwin` |
+| Windows | `zorp-cli-x86_64-pc-windows-msvc.exe` |
+
+```bash
+zorp-cli run ./zorp-workspace --collection API --env Staging --reporter junit --out hasil.xml
+```
+
+Opsi lain: `--folder`, `--data <file.csv|json>`, `--env-var nama=nilai` (boleh diulang), `--delay <ms>`, dan `--bail`. Karena nilai rahasia tidak ada di folder, berikan lewat `--env-var` atau variabel lingkungan `ZORP_VAR_<nama>`. Exit code-nya 0 jika semua lulus, 1 jika ada yang gagal, dan 2 jika perintah atau folder tidak valid. Perintah yang sama juga tersedia dari aplikasi terpasang, misalnya `/Applications/Zorp.app/Contents/MacOS/zorp run …`.
+
+Contoh langkah GitHub Actions:
+
+```yaml
+- run: |
+    curl -sSLo zorp-cli https://github.com/est57/Zorp/releases/latest/download/zorp-cli-x86_64-unknown-linux-gnu
+    chmod +x zorp-cli
+    ./zorp-cli run ./zorp-workspace --env Staging --reporter junit --out hasil.xml
+  env:
+    ZORP_VAR_token: ${{ secrets.API_TOKEN }}
+```
 
 ### Jenis auth
 
@@ -155,6 +200,8 @@ pnpm install
 pnpm tauri dev
 ```
 
+Biner CLI tanpa aplikasi desktop dibangun dengan `cargo build --release --no-default-features --bin zorp-cli` di folder `src-tauri`. Fitur Cargo `gui` (aktif secara default) berisi Tauri, plugin, keychain, dan pemantau folder.
+
 Build pengembangan memakai database terpisah (`zorp-dev.db`) di folder data aplikasi, sehingga tidak mengubah database milik Zorp yang terpasang.
 
 UI juga bisa dibuka di browser biasa dengan data contoh, tanpa backend, melalui `http://localhost:1420/?mock` saat `pnpm dev` berjalan. Mode ini hanya tersedia saat pengembangan.
@@ -222,7 +269,7 @@ Simpan cadangan kedua file tersebut di tempat aman. Jika kunci hilang, aplikasi 
    ```bash
    git tag -a v0.6.0 -m "Zorp v0.6.0" && git push origin v0.6.0
    ```
-3. Workflow **Release** lebih dulu menjalankan pemeriksaan singkat (job `preflight`): tag harus sama dengan versi aplikasi, dan kedua secret harus bisa dipakai untuk menandatangani. Jika lolos, workflow membuat installer untuk macOS, Windows, dan Linux, beserta `latest.json` untuk pembaruan otomatis, sebagai draft release.
+3. Workflow **Release** lebih dulu menjalankan pemeriksaan singkat (job `preflight`): tag harus sama dengan versi aplikasi, dan kedua secret harus bisa dipakai untuk menandatangani. Jika lolos, workflow membuat installer untuk macOS, Windows, dan Linux, beserta `latest.json` untuk pembaruan otomatis, sebagai draft release. Setelah itu job `cli` menambahkan biner `zorp-cli` untuk setiap sistem ke draft yang sama.
 4. Periksa draft di halaman Releases, lalu klik **Publish release**. Aplikasi yang sudah terpasang baru melihat versi baru setelah release diterbitkan.
 
 ### Jika rilis gagal

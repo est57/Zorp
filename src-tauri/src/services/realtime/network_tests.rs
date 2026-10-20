@@ -14,6 +14,8 @@ use crate::models::settings::{CaCertificate, ClientCertificate, ProxySettings, W
 
 fn spec(url: String) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "ws".into(),

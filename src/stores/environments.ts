@@ -6,21 +6,29 @@ import { isTauri } from "@/api/invoke";
 
 export const useEnvironmentsStore = defineStore("environments", () => {
   const items = ref<Environment[]>([]);
+  /** Workspace-wide variables, below every other layer. */
+  const globals = ref<Environment | null>(null);
 
   const active = computed(() => items.value.find((e) => e.isActive) ?? null);
 
-  /** Names that resolve in the active environment, used for variable highlighting. */
+  /** Names that resolve from the globals or the active environment, for variable highlighting. */
   const names = computed(
     () =>
       new Set(
-        (active.value?.variables ?? [])
+        [...(globals.value?.variables ?? []), ...(active.value?.variables ?? [])]
           .filter((v) => v.enabled && (!v.secret || v.hasValue))
           .map((v) => v.key),
       ),
   );
 
   async function load() {
-    if (isTauri()) items.value = await api.listEnvironments();
+    if (!isTauri()) return;
+    [items.value, globals.value] = await Promise.all([api.listEnvironments(), api.getGlobals()]);
+  }
+
+  async function saveGlobals(next: Environment) {
+    globals.value = await api.saveGlobals(next);
+    return globals.value;
   }
 
   async function save(environment: Environment) {
@@ -42,5 +50,5 @@ export const useEnvironmentsStore = defineStore("environments", () => {
     items.value.forEach((e) => (e.isActive = e.id === id));
   }
 
-  return { items, active, names, load, save, remove, activate };
+  return { items, globals, active, names, load, save, saveGlobals, remove, activate };
 });

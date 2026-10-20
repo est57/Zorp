@@ -12,6 +12,8 @@ use crate::state::AppState;
 pub struct RequestContext {
     pub collection_id: Option<Uuid>,
     pub folder_id: Option<Uuid>,
+    /// Workspace-wide values, the lowest layer.
+    pub globals: Vec<(String, String)>,
     pub environment: Vec<(String, String)>,
     pub collection: Vec<(String, String)>,
     /// Values of the current runner iteration; they override the environment.
@@ -37,6 +39,7 @@ impl RequestContext {
         let conn = state.db()?;
         let environment =
             db::environments::active_values(&conn, state.workspace_id(), state.secrets.as_ref())?;
+        let globals = db::globals::values(&conn, state.workspace_id(), state.secrets.as_ref())?;
         let has_environment = db::environments::list(&conn, state.workspace_id())?
             .iter()
             .any(|e| e.is_active);
@@ -47,6 +50,7 @@ impl RequestContext {
         Ok(Self {
             collection_id,
             folder_id,
+            globals,
             environment,
             collection,
             data: Vec::new(),
@@ -62,12 +66,13 @@ impl RequestContext {
         Ok(())
     }
 
-    /// Collection values, overridden by the environment, then iteration data, then script
-    /// locals (Postman precedence).
+    /// Globals, overridden by collection values, the environment, iteration data and
+    /// script locals, in that order (Postman precedence).
     pub fn variables(&self, locals: &HashMap<String, String>) -> Variables {
         let locals: Vec<(String, String)> =
             locals.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
         Variables::from_layers(vec![
+            self.globals.clone(),
             self.collection.clone(),
             self.environment.clone(),
             self.data.clone(),
@@ -76,7 +81,8 @@ impl RequestContext {
     }
 
     pub fn variable_map(&self, locals: &HashMap<String, String>) -> HashMap<String, String> {
-        let mut map: HashMap<String, String> = self.collection.iter().cloned().collect();
+        let mut map: HashMap<String, String> = self.globals.iter().cloned().collect();
+        map.extend(self.collection.iter().cloned());
         map.extend(self.environment.iter().cloned());
         map.extend(self.data.iter().cloned());
         map.extend(locals.clone());

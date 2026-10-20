@@ -4,8 +4,8 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use super::format::{
-    CollectionFile, EnvVariable, EnvironmentFile, FORMAT_VERSION, FolderFile, Pair, RequestFile,
-    WorkspaceFile,
+    CollectionFile, EnvVariable, EnvironmentFile, FORMAT_VERSION, FolderFile, GlobalFile, Pair,
+    RequestFile, WorkspaceFile,
 };
 use super::slug::Names;
 use super::*;
@@ -69,25 +69,34 @@ pub fn render(snapshot: &Snapshot) -> AppResult<FileMap> {
         let file = EnvironmentFile {
             id: env.id,
             name: env.name.clone(),
-            variables: env
-                .variables
-                .iter()
-                .map(|v| EnvVariable {
-                    key: v.key.clone(),
-                    value: if v.secret {
-                        String::new()
-                    } else {
-                        v.value.clone()
-                    },
-                    enabled: v.enabled,
-                    secret: v.secret,
-                })
-                .collect(),
+            variables: env_variables(&env.variables),
         };
         let path = format!("{ENVIRONMENTS_DIR}/{}.yaml", names.claim(&env.name, env.id));
         files.insert(path, yaml(&file)?);
     }
+    if !snapshot.globals.is_empty() {
+        let file = GlobalFile {
+            variables: env_variables(&snapshot.globals),
+        };
+        files.insert(format!("{ENVIRONMENTS_DIR}/{GLOBAL_FILE}"), yaml(&file)?);
+    }
     Ok(files)
+}
+
+fn env_variables(variables: &[crate::models::environment::Variable]) -> Vec<EnvVariable> {
+    variables
+        .iter()
+        .map(|v| EnvVariable {
+            key: v.key.clone(),
+            value: if v.secret {
+                String::new()
+            } else {
+                v.value.clone()
+            },
+            enabled: v.enabled,
+            secret: v.secret,
+        })
+        .collect()
 }
 
 fn render_level(

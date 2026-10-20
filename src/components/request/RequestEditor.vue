@@ -7,6 +7,8 @@ import { urlFromParams } from "@/utils/url";
 import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
 import DocsEditor from "./DocsEditor.vue";
+import AssertTable from "./rules/AssertTable.vue";
+import VarsTable from "./rules/VarsTable.vue";
 import ScriptChain from "./ScriptChain.vue";
 import ScriptEditor from "./ScriptEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
@@ -22,6 +24,16 @@ const allSections = computed<TabItem[]>(() => [
   { id: "headers", label: "Headers", badge: count(props.spec.headers) },
   { id: "body", label: "Body", badge: props.spec.body.type === "none" ? undefined : "1" },
   { id: "auth", label: "Auth" },
+  {
+    id: "vars",
+    label: "Vars",
+    badge: props.spec.vars?.filter((v) => v.enabled).length || undefined,
+  },
+  {
+    id: "asserts",
+    label: "Assert",
+    badge: props.spec.asserts?.filter((a) => a.enabled).length || undefined,
+  },
   {
     id: "scripts",
     label: "Script",
@@ -73,6 +85,8 @@ function setParams(rows: RequestSpec["params"]) {
         inherit-label="Ikuti folder atau koleksi"
         :collection-id="collectionId"
       />
+      <VarsTable v-else-if="section === 'vars'" :spec="spec" />
+      <AssertTable v-else-if="section === 'asserts'" :spec="spec" />
       <ScriptEditor v-else-if="section === 'scripts'" :scripts="spec.scripts">
         <ScriptChain :request-id="spec.id" />
       </ScriptEditor>

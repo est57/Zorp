@@ -3755,6 +3755,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "regex-lite"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cab834c73d247e67f4fae452806d17d3c7501756d98c8808d7c9c7aa7d18f973"
+
+[[package]]
 name = "regex-syntax"
 version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6657,10 +6663,14 @@ dependencies = [
  "getrandom 0.4.3",
  "hex",
  "hmac",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
  "jsonwebtoken",
  "keyring",
  "md-5",
  "notify-debouncer-mini",
+ "regex-lite",
  "reqwest",
  "rquickjs",
  "rusqlite",
@@ -6689,6 +6699,7 @@ dependencies = [
  "ts-rs",
  "url",
  "uuid",
+ "windows-sys 0.60.2",
  "wiremock",
 ]
 

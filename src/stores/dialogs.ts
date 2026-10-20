@@ -29,6 +29,8 @@ export const useDialogsStore = defineStore("dialogs", () => {
   const snippetTabId = ref<string | null>(null);
   const curlImportOpen = ref(false);
   const openApiOpen = ref(false);
+  /** Collection whose mock server dialog is open. */
+  const mockTarget = ref<{ collectionId: string; name: string } | null>(null);
   const cookiesOpen = ref(false);
   const settingsOpen = ref(false);
   /** Environment open in the editor; null id means a new one. */
@@ -63,6 +65,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
     snippetTabId,
     curlImportOpen,
     openApiOpen,
+    mockTarget,
     cookiesOpen,
     settingsOpen,
     environmentEditor,

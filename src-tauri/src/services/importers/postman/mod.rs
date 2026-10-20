@@ -63,6 +63,8 @@ fn parse_request(name: String, request: &Value, warnings: &mut Vec<String>) -> R
         m => m,
     };
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         method: parse_method(method, warnings, &name),

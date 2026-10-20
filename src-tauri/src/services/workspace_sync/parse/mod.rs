@@ -4,7 +4,8 @@ use std::path::Path;
 use uuid::Uuid;
 
 use super::format::{
-    CollectionFile, EnvironmentFile, FORMAT_VERSION, FolderFile, RequestFile, WorkspaceFile,
+    CollectionFile, EnvVariable, EnvironmentFile, FORMAT_VERSION, FolderFile, GlobalFile,
+    RequestFile, WorkspaceFile,
 };
 use super::*;
 
@@ -49,7 +50,9 @@ pub fn read(root: &Path) -> Result<Snapshot, Problems> {
         reader.collection(&dir);
     }
     for path in reader.entries(&root.join(ENVIRONMENTS_DIR), false) {
-        if path.extension().is_some_and(|e| e == "yaml") {
+        if path.file_name().is_some_and(|n| n == GLOBAL_FILE) {
+            reader.globals(&path);
+        } else if path.extension().is_some_and(|e| e == "yaml") {
             reader.environment(&path);
         }
     }
@@ -156,6 +159,12 @@ impl Reader<'_> {
         }
     }
 
+    fn globals(&mut self, path: &Path) {
+        if let Some(file) = self.load::<GlobalFile>(path) {
+            self.snapshot.globals = variables(file.variables);
+        }
+    }
+
     fn environment(&mut self, path: &Path) {
         let Some(file) = self.load::<EnvironmentFile>(path) else {
             return;
@@ -163,22 +172,23 @@ impl Reader<'_> {
         if !self.claim(file.id, &file.name, path) {
             return;
         }
-        let variables = file
-            .variables
-            .into_iter()
-            .map(|v| Variable {
-                key: v.key,
-                value: if v.secret { String::new() } else { v.value },
-                enabled: v.enabled,
-                secret: v.secret,
-                has_value: false,
-            })
-            .collect();
         self.snapshot.environments.push(Environment {
             id: file.id,
             name: file.name,
-            variables,
+            variables: variables(file.variables),
             is_active: false,
         });
     }
+}
+
+fn variables(list: Vec<EnvVariable>) -> Vec<Variable> {
+    list.into_iter()
+        .map(|v| Variable {
+            key: v.key,
+            value: if v.secret { String::new() } else { v.value },
+            enabled: v.enabled,
+            secret: v.secret,
+            has_value: false,
+        })
+        .collect()
 }

@@ -49,6 +49,8 @@ jobs:
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
+      - name: Headless CLI builds without the desktop app
+        run: cargo clippy --no-default-features --all-targets -- -D warnings
       - name: Verify generated bindings are committed
         run: git diff --exit-code -- ../src/bindings
 

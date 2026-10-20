@@ -2,7 +2,8 @@
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import pkg from "../../package.json";
 import type { RequestSpec } from "@/bindings/RequestSpec";
-import { body, env, examples, history, tree, workspace, workspaces } from "./mockData";
+import { body, env, history, tree, workspace, workspaces } from "./mockData";
+import { handleFeature } from "./mockFeatures";
 import { handleRealtime } from "./mockRealtime";
 
 export function installMockBackend() {
@@ -12,6 +13,8 @@ export function installMockBackend() {
       const a = (args ?? {}) as Record<string, unknown>;
       const realtime = handleRealtime(cmd, a);
       if (realtime.handled) return realtime.value;
+      const feature = handleFeature(cmd, a);
+      if (feature.handled) return feature.value;
       switch (cmd) {
         case "app_info":
           return { version: pkg.version, schemaVersion: 5, workspace };
@@ -19,35 +22,6 @@ export function installMockBackend() {
           return { activeId: workspace.id, workspaces };
         case "sync_status":
           return { folder: workspace.folder, problems: [] };
-        case "preview_openapi":
-          await new Promise((r) => setTimeout(r, 300));
-          return {
-            title: "Swagger Petstore",
-            version: "1.0.27",
-            format: "OpenAPI 3.0",
-            endpoints: 19,
-            groups: [
-              { name: "pet", count: 8 },
-              { name: "store", count: 4 },
-              { name: "user", count: 7 },
-            ],
-            auth: ["petstore_auth", "api_key"],
-            servers: ["https://petstore3.swagger.io/api/v3"],
-            samples: [
-              { method: "PUT", name: "Update an existing pet", group: "pet" },
-              { method: "POST", name: "Add a new pet to the store", group: "pet" },
-              { method: "GET", name: "Finds Pets by status", group: "pet" },
-            ],
-          };
-        case "get_collection_variables":
-          return [["base_url", "https://api.contoh.id"]];
-        case "set_node_settings":
-        case "set_collection_variables":
-          return null;
-        case "get_example":
-          return examples.find((e) => e.id === a.id);
-        case "save_example":
-          return { ...(a.example as object), id: "ex-new", sortOrder: 3 };
         case "list_tree":
           return structuredClone(tree);
         case "list_environments":
@@ -108,16 +82,6 @@ export function installMockBackend() {
             durationMs: 412,
             cancelled: false,
           };
-        case "preview_run_data":
-          return {
-            columns: ["email", "outletId", "login_password"],
-            rows: [
-              ["leader.a@outlet.contoh.id", "242", "rahasia-1"],
-              ["leader.b@outlet.contoh.id", "118", "rahasia-2"],
-              ["staff.c@outlet.contoh.id", "305", "rahasia-3"],
-            ],
-            total: 3,
-          };
         case "cancel_run":
           return null;
         case "get_settings":
@@ -176,6 +140,7 @@ export function installMockBackend() {
               logs: spec.scripts.test.trim() ? [{ level: "log", message: "total user: 47" }] : [],
               errors: [],
               variablesChanged: false,
+              captured: [],
             },
           };
         }

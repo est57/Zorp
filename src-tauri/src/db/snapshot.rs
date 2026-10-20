@@ -4,7 +4,7 @@ use rusqlite::{Connection, params};
 use uuid::Uuid;
 
 use super::node_settings::scripts_json;
-use super::{collections, environments, examples, folders, now_ms, requests, workspace};
+use super::{collections, environments, examples, folders, globals, now_ms, requests, workspace};
 use crate::error::{AppError, AppResult};
 use crate::models::environment::Variable;
 use crate::services::secrets::{SecretStore, env_account};
@@ -32,6 +32,7 @@ pub fn load(conn: &Connection, workspace_id: Uuid) -> AppResult<Snapshot> {
         requests: requests::list(conn, workspace_id)?,
         examples: examples::list(conn, workspace_id)?,
         environments: environments::list(conn, workspace_id)?,
+        globals: globals::get(conn, workspace_id)?.variables,
     })
 }
 
@@ -139,7 +140,14 @@ pub fn replace(
             other => other,
         })?;
     }
-    let stale = replace_environments(&tx, &ws, snapshot, &previous)?;
+    let previous_globals = globals::get(&tx, workspace_id)?.variables;
+    let mut stale = replace_environments(&tx, &ws, snapshot, &previous)?;
+    stale.extend(globals::replace(
+        &tx,
+        workspace_id,
+        &snapshot.globals,
+        &previous_globals,
+    )?);
     tx.commit()?;
     for account in stale {
         secrets.delete(&account)?;

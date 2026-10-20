@@ -10,3 +10,8 @@ export const deleteEnvironment = (id: string) => invoke<void>("delete_environmen
 
 export const setActiveEnvironment = (id: string | null) =>
   invoke<void>("set_active_environment", { id });
+
+export const getGlobals = () => invoke<Environment>("get_globals");
+
+export const saveGlobals = (globals: Environment) =>
+  invoke<Environment>("save_globals", { globals });

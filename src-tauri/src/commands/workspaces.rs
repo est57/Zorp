@@ -80,7 +80,8 @@ fn remove_secrets(
     secrets: &dyn SecretStore,
     id: Uuid,
 ) -> AppResult<()> {
-    for env in environments::list(conn, id)? {
+    let globals = crate::db::globals::get(conn, id)?;
+    for env in environments::list(conn, id)?.into_iter().chain([globals]) {
         for var in env.variables.iter().filter(|v| v.secret) {
             secrets.delete(&env_account(env.id, &var.key))?;
         }

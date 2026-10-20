@@ -54,6 +54,8 @@ async fn collection_and_folder_scripts_run_before_the_request() {
     )
     .unwrap();
     let spec = RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "Checklist".into(),
@@ -106,6 +108,8 @@ async fn collection_script_error_names_its_source() {
     )
     .unwrap();
     let spec = RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "x".into(),
@@ -181,6 +185,8 @@ async fn collection_script_can_log_in_with_send_request() {
     )
     .unwrap();
     let spec = RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "Me".into(),

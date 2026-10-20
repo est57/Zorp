@@ -85,7 +85,7 @@ const drag = (kind: "folder" | "request", id: string) =>
         :expanded="collections.expanded.has(folder.id)"
         :menu="folderMenu(folder.id, folder.name)"
         :warning="warningFor(folder.id)"
-        :badge="folder.scripts.preRequest.trim() || folder.scripts.test.trim() ? 'JS' : undefined"
+        :badges="folder.scripts.preRequest.trim() || folder.scripts.test.trim() ? ['JS'] : []"
         draggable
         zones="all"
         @activate="collections.toggle(folder.id)"

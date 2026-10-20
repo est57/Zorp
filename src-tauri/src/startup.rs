@@ -6,7 +6,7 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use crate::db;
 use crate::error::{AppError, AppResult};
 use crate::services::cookies::CookieJar;
-use crate::services::secrets::KeychainStore;
+use crate::services::keychain::KeychainStore;
 use crate::state::AppState;
 use crate::sync;
 
@@ -50,6 +50,7 @@ pub fn init(app: &App) -> AppResult<()> {
         settings,
     ));
     app.manage(sync::SyncEngine::default());
+    app.manage(crate::commands::mock::MockRegistry::default());
     sync::start_flusher(app.handle().clone(), flush);
     let handle = app.handle();
     let folder = workspace.folder.map(PathBuf::from);

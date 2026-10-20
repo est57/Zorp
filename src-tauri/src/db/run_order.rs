@@ -59,6 +59,8 @@ mod tests {
 
     fn spec(name: &str) -> RequestSpec {
         RequestSpec {
+            asserts: Vec::new(),
+            vars: Vec::new(),
             docs: String::new(),
             id: Uuid::now_v7(),
             name: name.into(),

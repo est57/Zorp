@@ -5,6 +5,8 @@ use crate::models::request::RequestSpec;
 impl RequestFile {
     pub fn from_spec(spec: RequestSpec, order: f64, examples: &[&ResponseExample]) -> Self {
         Self {
+            asserts: spec.asserts,
+            vars: spec.vars,
             docs: spec.docs,
             examples: examples
                 .iter()
@@ -57,6 +59,8 @@ impl RequestFile {
             })
             .collect();
         let spec = RequestSpec {
+            asserts: self.asserts,
+            vars: self.vars,
             docs: self.docs,
             id: self.id,
             name: self.name,

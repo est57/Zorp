@@ -34,4 +34,15 @@ pub struct ScriptReport {
     pub errors: Vec<String>,
     /// True when a script changed environment or collection variables.
     pub variables_changed: bool,
+    /// Values read by the request's "after response" variables, in table order.
+    pub captured: Vec<CapturedVar>,
+}
+
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct CapturedVar {
+    pub name: String,
+    /// None when the expression found nothing in the response.
+    pub value: Option<String>,
 }

@@ -3,6 +3,7 @@ pub mod cookies;
 pub mod environments;
 pub mod examples;
 pub mod folders;
+pub mod globals;
 pub mod history;
 pub mod import;
 pub mod node_settings;
@@ -31,6 +32,7 @@ const MIGRATIONS_SLICE: &[M<'_>] = &[
     M::up(include_str!("../../migrations/0004_workspaces.sql")),
     M::up(include_str!("../../migrations/0005_examples.sql")),
     M::up(include_str!("../../migrations/0006_node_settings.sql")),
+    M::up(include_str!("../../migrations/0007_globals.sql")),
 ];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;
@@ -39,7 +41,7 @@ pub fn open(path: &Path) -> AppResult<Connection> {
     prepare(Connection::open(path)?)
 }
 
-#[cfg(test)]
+/// A database that lives only in memory, used by tests and the CLI.
 pub fn open_in_memory() -> AppResult<Connection> {
     prepare(Connection::open_in_memory()?)
 }

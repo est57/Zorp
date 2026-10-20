@@ -26,6 +26,8 @@ fn saved(collection: Uuid, folder: Option<Uuid>, order: f64, spec: RequestSpec) 
 
 fn spec(name: &str, method: HttpMethod, body: Body, auth: Auth) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: name.into(),

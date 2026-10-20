@@ -64,6 +64,7 @@ pub struct ScriptInput {
     pub variables: HashMap<String, String>,
     pub environment: HashMap<String, String>,
     pub collection_variables: HashMap<String, String>,
+    pub globals: HashMap<String, String>,
     pub has_environment: bool,
 }
 
@@ -74,6 +75,10 @@ pub struct ScriptOutput {
     pub env_unset: Vec<String>,
     pub coll: HashMap<String, String>,
     pub coll_unset: Vec<String>,
+    #[serde(default)]
+    pub glob: HashMap<String, String>,
+    #[serde(default)]
+    pub glob_unset: Vec<String>,
     /// Values set with pm.variables.set, applied to this request only.
     pub locals: HashMap<String, String>,
     pub tests: Vec<TestResult>,
@@ -105,7 +110,9 @@ impl ScriptOutput {
         !(self.env.is_empty()
             && self.env_unset.is_empty()
             && self.coll.is_empty()
-            && self.coll_unset.is_empty())
+            && self.coll_unset.is_empty()
+            && self.glob.is_empty()
+            && self.glob_unset.is_empty())
     }
 }
 

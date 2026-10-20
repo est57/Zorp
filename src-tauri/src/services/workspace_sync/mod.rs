@@ -10,7 +10,7 @@ pub mod slug;
 mod tests;
 
 use crate::models::collection::{Collection, Folder, SavedRequest};
-use crate::models::environment::Environment;
+use crate::models::environment::{Environment, Variable};
 use crate::models::example::ResponseExample;
 
 /// The shared part of a workspace: everything stored in the folder.
@@ -23,6 +23,8 @@ pub struct Snapshot {
     pub examples: Vec<ResponseExample>,
     /// Secret values are never part of a snapshot.
     pub environments: Vec<Environment>,
+    /// Workspace-wide variables; secret values are left out here as well.
+    pub globals: Vec<Variable>,
 }
 
 #[derive(Debug, Clone)]
@@ -37,3 +39,4 @@ pub const ENVIRONMENTS_DIR: &str = "environments";
 pub const COLLECTION_FILE: &str = "collection.yaml";
 pub const FOLDER_FILE: &str = "folder.yaml";
 pub const REQUEST_SUFFIX: &str = ".request.yaml";
+pub const GLOBAL_FILE: &str = "_global.yaml";

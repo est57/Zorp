@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppStore } from "@/stores/app";
+import { useMocksStore } from "@/stores/mocks";
 import SyncIndicator from "./SyncIndicator.vue";
 import UpdateNotice from "./UpdateNotice.vue";
 
 const app = useAppStore();
+const mocks = useMocksStore();
 
 const status = computed(() => {
   switch (app.status) {
@@ -29,6 +31,18 @@ const status = computed(() => {
       {{ status.text }}
     </span>
     <SyncIndicator />
+    <span
+      v-if="mocks.running.length"
+      class="text-success"
+      :title="mocks.running.map((m) => m.url).join(', ')"
+    >
+      ●
+      {{
+        mocks.running.length === 1
+          ? `Mock aktif: ${mocks.running[0].url.replace("http://", "")}`
+          : `${mocks.running.length} mock aktif`
+      }}
+    </span>
     <span class="flex-1" />
     <UpdateNotice />
     <span v-if="app.info" class="tabular-nums">Zorp {{ app.info.version }}</span>

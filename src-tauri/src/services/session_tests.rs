@@ -9,6 +9,8 @@ use crate::models::request::*;
 
 fn spec(method: HttpMethod, url: &str) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: uuid::Uuid::now_v7(),
         name: "Test".into(),

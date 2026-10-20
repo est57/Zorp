@@ -14,6 +14,8 @@ type Log = Arc<Mutex<Vec<(RealtimeKind, String, Option<String>)>>>;
 
 fn spec(url: String, mode: crate::models::realtime::RequestMode) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "Live".into(),

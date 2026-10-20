@@ -6,6 +6,8 @@ const __out = {
   envUnset: [],
   coll: {},
   collUnset: [],
+  glob: {},
+  globUnset: [],
   locals: {},
   tests: [],
   logs: [],
@@ -44,6 +46,7 @@ const __env = Object.assign({}, __envStore, {
   },
 });
 const __coll = __store(__in.collectionVariables, __out.coll, __out.collUnset);
+const __glob = __store(__in.globals, __out.glob, __out.globUnset);
 const __locals = __store({}, __out.locals, []);
 
 const __req = __in.request;
@@ -94,6 +97,7 @@ const pm = {
   info: { requestName: __in.requestName, eventName: __in.kind === "pre" ? "prerequest" : "test" },
   environment: __env,
   collectionVariables: __coll,
+  globals: __glob,
   variables: {
     get: (k) => (__locals.has(k) ? __locals.get(k) : __in.variables[k]),
     set: (k, v) => __locals.set(k, v),

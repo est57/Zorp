@@ -7,6 +7,7 @@ pub mod export;
 pub mod history;
 pub mod http;
 pub mod import;
+pub mod mock;
 pub mod oauth;
 pub mod openapi;
 pub mod realtime;

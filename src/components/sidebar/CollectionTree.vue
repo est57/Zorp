@@ -6,6 +6,7 @@ import { useCredentialWarnings } from "@/composables/useCredentialWarnings";
 import { useExport } from "@/composables/useExport";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
+import { useMocksStore } from "@/stores/mocks";
 import TreeBranch from "./TreeBranch.vue";
 import TreeRow, { type MenuItem } from "./TreeRow.vue";
 import { useTreeActions } from "./useTreeActions";
@@ -14,6 +15,7 @@ const collections = useCollectionsStore();
 const actions = useTreeActions();
 const dialogs = useDialogsStore();
 const exporter = useExport();
+const mocks = useMocksStore();
 const { warningFor } = useCredentialWarnings();
 
 const menu = (c: Collection): MenuItem[] => [
@@ -28,6 +30,11 @@ const menu = (c: Collection): MenuItem[] => [
     label: "Pengaturan",
     icon: "settings",
     run: () => (dialogs.nodeTarget = { kind: "collection", id: c.id }),
+  },
+  {
+    label: "Mock server",
+    icon: "monitor",
+    run: () => (dialogs.mockTarget = { collectionId: c.id, name: c.name }),
   },
   { label: "Ekspor ke Postman", icon: "download", run: () => exporter.collectionToPostman(c) },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("collection", c.id, c.name) },
@@ -53,7 +60,10 @@ const menu = (c: Collection): MenuItem[] => [
         :expanded="collections.expanded.has(c.id)"
         :menu="menu(c)"
         :warning="warningFor(c.id)"
-        :badge="c.scripts.preRequest.trim() || c.scripts.test.trim() ? 'JS' : undefined"
+        :badges="[
+          ...(c.scripts.preRequest.trim() || c.scripts.test.trim() ? ['JS'] : []),
+          ...(mocks.statusOf(c.id) ? ['MOCK'] : []),
+        ]"
         zones="inside"
         class="font-medium"
         @activate="collections.toggle(c.id)"

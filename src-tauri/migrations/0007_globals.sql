@@ -1,0 +1,1 @@
+ALTER TABLE environments ADD COLUMN is_global INTEGER NOT NULL DEFAULT 0;

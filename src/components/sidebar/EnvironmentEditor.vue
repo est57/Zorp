@@ -9,7 +9,7 @@ import { useEnvironmentsStore } from "@/stores/environments";
 import { useToastsStore } from "@/stores/toasts";
 import { cloneJson } from "@/utils/request";
 
-const props = defineProps<{ environment: Environment | null }>();
+const props = defineProps<{ environment: Environment | null; global?: boolean }>();
 const open = defineModel<boolean>("open", { required: true });
 const envs = useEnvironmentsStore();
 const toasts = useToastsStore();
@@ -29,10 +29,15 @@ function addRow() {
 }
 
 async function save() {
-  const saved = await toasts.guard(() => envs.save(draft.value));
+  const saved = await toasts.guard(() =>
+    props.global ? envs.saveGlobals(draft.value) : envs.save(draft.value),
+  );
   if (!saved) return;
   open.value = false;
-  toasts.push(`Environment "${saved.name}" disimpan`, "success");
+  toasts.push(
+    props.global ? "Variabel global disimpan" : `Environment "${saved.name}" disimpan`,
+    "success",
+  );
 }
 </script>
 
@@ -40,11 +45,15 @@ async function save() {
   <ModalDialog
     v-model:open="open"
     wide
-    :title="environment ? 'Edit environment' : 'Environment baru'"
-    description="Variabel dirujuk dengan {{nama}}. Nilai rahasia disimpan di keychain sistem, bukan di database."
+    :title="global ? 'Variabel global' : environment ? 'Edit environment' : 'Environment baru'"
+    :description="
+      global
+        ? 'Berlaku di semua koleksi tanpa memilih environment. Koleksi, environment, dan data iterasi dengan nama sama lebih diutamakan. Nilai rahasia disimpan di keychain sistem.'
+        : 'Variabel dirujuk dengan {{nama}}. Nilai rahasia disimpan di keychain sistem, bukan di database.'
+    "
   >
     <form class="grid gap-3 text-xs" @submit.prevent="save">
-      <label class="grid gap-1.5">
+      <label v-if="!global" class="grid gap-1.5">
         <span class="text-muted">Nama</span>
         <input
           v-model="draft.name"

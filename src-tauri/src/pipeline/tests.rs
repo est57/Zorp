@@ -39,6 +39,8 @@ fn state_with_env() -> AppState {
 
 fn spec(url: String, scripts: Scripts) -> RequestSpec {
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: "Login".into(),

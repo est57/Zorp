@@ -8,6 +8,7 @@ import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
 import CookieManagerDialog from "@/components/sidebar/CookieManagerDialog.vue";
 import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
 import NodeSettingsDialog from "@/components/sidebar/NodeSettingsDialog.vue";
+import MockServerDialog from "@/components/sidebar/MockServerDialog.vue";
 import OpenApiImportDialog from "@/components/sidebar/OpenApiImportDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
 import ToastHost from "@/components/ui/ToastHost.vue";
@@ -23,6 +24,7 @@ import { useHistoryStore } from "@/stores/history";
 import { useLayoutStore } from "@/stores/layout";
 import { restoreTabSession, watchTabSession } from "@/stores/tabSession";
 import { useTabsStore } from "@/stores/tabs";
+import { useMocksStore } from "@/stores/mocks";
 import { useUpdaterStore } from "@/stores/updater";
 import { useWorkspacesStore } from "@/stores/workspaces";
 import ActivityRail from "./ActivityRail.vue";
@@ -82,6 +84,7 @@ onMounted(async () => {
     useEnvironmentsStore().load(),
     useHistoryStore().load(),
     workspaces.load(),
+    useMocksStore().load(),
   ]);
   if (workspaces.activeId) {
     restoreTabSession(workspaces.activeId);
@@ -121,6 +124,7 @@ onMounted(async () => {
     <CodeSnippetDialog />
     <ImportCurlDialog />
     <OpenApiImportDialog />
+    <MockServerDialog />
     <CommandPalette />
     <CookieManagerDialog />
     <SettingsDialog />

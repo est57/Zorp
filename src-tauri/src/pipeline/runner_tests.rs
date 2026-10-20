@@ -4,6 +4,7 @@ use wiremock::matchers::path;
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 use super::*;
+use crate::db;
 use crate::models::request::{Auth, Body, HttpMethod, RequestSettings, RequestSpec};
 use crate::models::script::Scripts;
 use crate::services::cookies::CookieJar;
@@ -28,6 +29,8 @@ fn item(name: &str, url: String, test: &str) -> SavedRequest {
         folder_id: None,
         sort_order: 1.0,
         spec: RequestSpec {
+            asserts: Vec::new(),
+            vars: Vec::new(),
             docs: String::new(),
             id: Uuid::now_v7(),
             name: name.into(),

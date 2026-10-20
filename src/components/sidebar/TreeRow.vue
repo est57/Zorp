@@ -30,10 +30,10 @@ const props = withDefaults(
     menu: MenuItem[];
     /** Shown as a warning marker, for example credentials typed in directly. */
     warning?: string;
-    /** Small tag after the label, for example JS when scripts are attached. */
-    badge?: string;
+    /** Small tags after the label, for example JS when scripts are attached. */
+    badges?: string[];
   }>(),
-  { selected: false, expanded: undefined, draggable: false, warning: undefined, badge: undefined },
+  { selected: false, expanded: undefined, draggable: false, warning: undefined, badges: () => [] },
 );
 const emit = defineEmits<{ activate: []; dragstart: []; drop: [zone: DropZone] }>();
 
@@ -87,9 +87,15 @@ function onDrop(event: DragEvent) {
         <slot name="lead" />
         <span class="truncate">{{ label }}</span>
         <span
-          v-if="badge"
-          class="shrink-0 rounded-sm bg-accent-soft px-1 font-mono text-[9px] leading-[14px] font-semibold text-accent"
-          :title="badge === 'JS' ? 'Punya script' : undefined"
+          v-for="badge in badges"
+          :key="badge"
+          class="shrink-0 rounded-sm px-1 font-mono text-[9px] leading-[14px] font-semibold"
+          :class="
+            badge === 'MOCK'
+              ? 'bg-[color-mix(in_srgb,var(--success)_14%,transparent)] text-success'
+              : 'bg-accent-soft text-accent'
+          "
+          :title="badge === 'JS' ? 'Punya script' : 'Mock server berjalan'"
           >{{ badge }}</span
         >
         <span v-if="warning" class="ml-auto flex shrink-0 text-warning" :title="warning">

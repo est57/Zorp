@@ -132,6 +132,8 @@ pub fn build(ctx: &mut Context, op: &Operation) -> RequestSpec {
         _ => Auth::Inherit,
     };
     RequestSpec {
+        asserts: Vec::new(),
+        vars: Vec::new(),
         docs: String::new(),
         id: Uuid::now_v7(),
         name: op.name(),

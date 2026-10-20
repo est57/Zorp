@@ -14,6 +14,8 @@ fn request(name: &str, collection: Uuid, folder: Option<Uuid>, order: f64) -> Sa
         folder_id: folder,
         sort_order: order,
         spec: RequestSpec {
+            asserts: Vec::new(),
+            vars: Vec::new(),
             docs: String::new(),
             id: Uuid::now_v7(),
             name: name.into(),
@@ -86,6 +88,22 @@ fn sample() -> Snapshot {
     Snapshot {
         name: "Tim".into(),
         examples: vec![example],
+        globals: vec![
+            Variable {
+                key: "app".into(),
+                value: "zorp".into(),
+                enabled: true,
+                secret: false,
+                has_value: false,
+            },
+            Variable {
+                key: "sentry".into(),
+                value: "jangan-ditulis".into(),
+                enabled: true,
+                secret: true,
+                has_value: true,
+            },
+        ],
         requests: vec![
             documented,
             request("Create user", collection.id, None, 2.0),
@@ -151,6 +169,15 @@ fn folder_round_trip_keeps_structure_and_omits_secrets() {
     );
     assert_eq!(back.environments[0].variables[1].value, "");
     assert_eq!(back.examples, snapshot.examples);
+    assert!(files.contains_key("environments/_global.yaml"));
+    assert!(files.values().all(|t| !t.contains("jangan-ditulis")));
+    assert_eq!(
+        back.globals
+            .iter()
+            .map(|v| v.key.as_str())
+            .collect::<Vec<_>>(),
+        ["app", "sentry"]
+    );
 }
 
 #[test]
