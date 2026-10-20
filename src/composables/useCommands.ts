@@ -8,6 +8,7 @@ import { useEnvironmentsStore } from "@/stores/environments";
 import { useLayoutStore } from "@/stores/layout";
 import { useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
+import { useUpdaterStore } from "@/stores/updater";
 import { useImport } from "./useImport";
 import { useRequestActions } from "./useRequestActions";
 
@@ -113,6 +114,12 @@ export function useCommands() {
         group: "Aksi",
         label: "Pengaturan proxy dan sertifikat",
         run: () => (dialogs.settingsOpen = true),
+      },
+      {
+        id: "update",
+        group: "Aksi",
+        label: "Periksa pembaruan",
+        run: () => useUpdaterStore().checkForUpdate(),
       },
       {
         id: "sidebar",

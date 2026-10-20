@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppStore } from "@/stores/app";
+import UpdateNotice from "./UpdateNotice.vue";
 
 const app = useAppStore();
 
@@ -27,6 +28,7 @@ const status = computed(() => {
       {{ status.text }}
     </span>
     <span class="flex-1" />
+    <UpdateNotice />
     <template v-if="app.info">
       <span class="hidden tabular-nums sm:inline">Skema v{{ app.info.schemaVersion }}</span>
       <span class="tabular-nums">Zorp {{ app.info.version }}</span>

@@ -44,6 +44,16 @@
     "homepage": "https://github.com/est57/Zorp",
     "macOS": {
       "minimumSystemVersion": "10.15"
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDlBRDE2Q0FDQzZDRTYzMEMKUldRTVk4N0dyR3pSbWl4bjlFQzQvM0huSGZrbXRIajY2VGpmMVNhUElySnUrb2l6Yi9jdHBwQlYK",
+      "endpoints": ["https://github.com/est57/Zorp/releases/latest/download/latest.json"],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }

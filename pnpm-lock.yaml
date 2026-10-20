@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@codemirror/autocomplete':
+        specifier: ^6.20.3
+        version: 6.20.3
       '@codemirror/commands':
         specifier: ^6.11.1
         version: 6.11.1
@@ -20,6 +23,9 @@ importers:
       '@codemirror/language':
         specifier: ^6.13.1
         version: 6.13.1
+      '@codemirror/lint':
+        specifier: ^6.9.7
+        version: 6.9.7
       '@codemirror/search':
         specifier: ^6.7.2
         version: 6.7.2
@@ -44,6 +50,18 @@ importers:
       '@tauri-apps/plugin-dialog':
         specifier: ^2.8.3
         version: 2.8.3
+      '@tauri-apps/plugin-process':
+        specifier: ^2.4.0
+        version: 2.4.0
+      '@tauri-apps/plugin-updater':
+        specifier: ^2.14.0
+        version: 2.14.0
+      cm6-graphql:
+        specifier: ^0.2.2
+        version: 0.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/language@6.13.1)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.6)(@codemirror/view@6.43.14)(@lezer/highlight@1.2.5)(graphql@17.0.2)
+      graphql:
+        specifier: ^17.0.2
+        version: 17.0.2
       pinia:
         specifier: ^4.1.0
         version: 4.1.0(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.44(typescript@6.0.3))
@@ -641,6 +659,12 @@ packages:
   '@tauri-apps/plugin-dialog@2.8.3':
     resolution: {integrity: sha512-Hd/yBfk2R5v2MFrz/0VArSXeh8xKLLXGunqSiTtcHKn1zNZwaKujuA0VSwUvNfwC4hDoF1PveS+gBDNe3nHspw==}
 
+  '@tauri-apps/plugin-process@2.4.0':
+    resolution: {integrity: sha512-GddrmsSLAYrLa/yTXlXK/YRDzUgYeeOnUXTbiyvJWkmI424RmDPD3FVLeqcon7rv6O6ZfhBilcrHWnSo7o6hIQ==}
+
+  '@tauri-apps/plugin-updater@2.14.0':
+    resolution: {integrity: sha512-gdylJ9tger4hkyOn24QZd6MNOKVo2Eh53iw5th2Qj1vKTR/+u4PIwJWuiis5hohYvobn6iOvlnALfrqIPSzh7Q==}
+
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
@@ -865,6 +889,17 @@ packages:
     resolution: {integrity: sha512-XWAtwJ6OHO+tj0EKCs0Y2UamnyOxseZWltU4x2U2wh8g4AigdjwvtUjvLP2tqkA/avxHEtzxNaqGq/YGNwckKg==}
     engines: {node: '>=18'}
 
+  cm6-graphql@0.2.2:
+    resolution: {integrity: sha512-z9DQonlhuCQZotqSxKUMdZpZKZO8xaxx9BQNf2EBr0auunWaS9FJmUoeiBECOn24aZq2UZqcPIa9OwYZolk8Tg==}
+    peerDependencies:
+      '@codemirror/autocomplete': ^6.0.0
+      '@codemirror/language': ^6.0.0
+      '@codemirror/lint': ^6.9.7
+      '@codemirror/state': ^6.0.0
+      '@codemirror/view': ^6.0.0
+      '@lezer/highlight': ^1.0.0
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+
   commander@14.0.3:
     resolution: {integrity: sha512-H+y0Jo/T1RZ9qPP4Eh1pkcQcLRglraJaSLoyOtHxu6AapkjWVCy2Sit1QQ4x3Dng8qDlSsZEet7g5Pq06MvTgw==}
     engines: {node: '>=20'}
@@ -894,6 +929,9 @@ packages:
   data-urls@8.0.0:
     resolution: {integrity: sha512-JQUCCK+/CAGbGGx618PlFZMXH81Jtj7t73CHv9dd/zVWvxgGT2zLFRjnKb+Ng46GIwcy+f7f88qd4duqllK+WQ==}
     engines: {node: ^22.14.0 || >=24.0.0}
+
+  debounce-promise@3.1.2:
+    resolution: {integrity: sha512-rZHcgBkbYavBeD9ej6sP56XfG53d51CD4dnaw989YX/nZ/ZJfgRx/9ePKmTNiUiyQvh4mtrMoS3OAWW+yoYtpg==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1063,6 +1101,16 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  graphql-language-service@5.7.0:
+    resolution: {integrity: sha512-5mwDb9HyHxMcO9RCLLieg6rC1u9XKJKWhFuvaZFJi3broQZDz1fcFNlm96UCMrIgI6MSsb9RwwqKKp2sZOZ9Gw==}
+    hasBin: true
+    peerDependencies:
+      graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
+
+  graphql@17.0.2:
+    resolution: {integrity: sha512-FRWbddMxfkjiB7z+aQDWIR+E34xo9I8c9mtK2RPv8PmMzKRvrdsreHL/Ui/TmwHJfhHChEtsFPyMHKI+xuarQQ==}
+    engines: {node: ^22.0.0 || ^24.0.0 || ^25.0.0 || >=26.0.0}
 
   hashery@1.5.1:
     resolution: {integrity: sha512-iZyKG96/JwPz1N55vj2Ie2vXbhu440zfUfJvSwEqEbeLluk7NnapfGqa7LH0mOsnDxTF85Mx8/dyR6HfqcbmbQ==}
@@ -1341,6 +1389,9 @@ packages:
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
+
+  nullthrows@1.1.1:
+    resolution: {integrity: sha512-2vPPEi+Z7WqML2jZYddDIfy5Dqb0r2fze2zTxNNknZaFpVHU3mFB3R+DWeJWGVx0ecvttSGlJTI+WG+8Z4cDWw==}
 
   obug@3.0.0:
     resolution: {integrity: sha512-5vvB5+W7ePv+p3uqxi+RcW1XAzLW0/hxt3/4X4Lc4qHudzOhmBiBwOY6DRob4WnanAEGvNcLjF+KNOufrUoEQw==}
@@ -1623,6 +1674,9 @@ packages:
         optional: true
       jsdom:
         optional: true
+
+  vscode-languageserver-types@3.18.4:
+    resolution: {integrity: sha512-nQsacoiijvl0fRf2q28uFDrAVwRhdCa3QveiF7/CX0r18mLR5FU/1WskSsCKOjmEbtteKUnY8x8Yzxop+k0zwg==}
 
   vscode-uri@3.2.0:
     resolution: {integrity: sha512-m2gXo3bn0G1kT9InzMf07fTbqMbGtyckj3bH5ktLO+1Ssv+yiATZ4dhwaQv9UZWxJh6E9IFGnQyjgWVDWVBDrg==}
@@ -2143,6 +2197,14 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.12.4
 
+  '@tauri-apps/plugin-process@2.4.0':
+    dependencies:
+      '@tauri-apps/api': 2.12.4
+
+  '@tauri-apps/plugin-updater@2.14.0':
+    dependencies:
+      '@tauri-apps/api': 2.12.4
+
   '@types/chai@5.2.3':
     dependencies:
       '@types/deep-eql': 4.0.2
@@ -2428,6 +2490,17 @@ snapshots:
 
   chai@6.3.0: {}
 
+  cm6-graphql@0.2.2(@codemirror/autocomplete@6.20.3)(@codemirror/language@6.13.1)(@codemirror/lint@6.9.7)(@codemirror/state@6.7.6)(@codemirror/view@6.43.14)(@lezer/highlight@1.2.5)(graphql@17.0.2):
+    dependencies:
+      '@codemirror/autocomplete': 6.20.3
+      '@codemirror/language': 6.13.1
+      '@codemirror/lint': 6.9.7
+      '@codemirror/state': 6.7.6
+      '@codemirror/view': 6.43.14
+      '@lezer/highlight': 1.2.5
+      graphql: 17.0.2
+      graphql-language-service: 5.7.0(graphql@17.0.2)
+
   commander@14.0.3: {}
 
   config-chain@1.1.13:
@@ -2458,6 +2531,8 @@ snapshots:
       whatwg-url: 17.3.0
     transitivePeerDependencies:
       - '@noble/hashes'
+
+  debounce-promise@3.1.2: {}
 
   debug@4.4.3:
     dependencies:
@@ -2625,6 +2700,15 @@ snapshots:
   globals@17.13.0: {}
 
   graceful-fs@4.2.11: {}
+
+  graphql-language-service@5.7.0(graphql@17.0.2):
+    dependencies:
+      debounce-promise: 3.1.2
+      graphql: 17.0.2
+      nullthrows: 1.1.1
+      vscode-languageserver-types: 3.18.4
+
+  graphql@17.0.2: {}
 
   hashery@1.5.1:
     dependencies:
@@ -2848,6 +2932,8 @@ snapshots:
     dependencies:
       boolbase: 1.0.0
 
+  nullthrows@1.1.1: {}
+
   obug@3.0.0: {}
 
   ohash@2.0.12: {}
@@ -3068,6 +3154,8 @@ snapshots:
       jsdom: 30.1.3
     transitivePeerDependencies:
       - msw
+
+  vscode-languageserver-types@3.18.4: {}
 
   vscode-uri@3.2.0: {}
 

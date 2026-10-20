@@ -21,6 +21,7 @@ import { useEnvironmentsStore } from "@/stores/environments";
 import { useHistoryStore } from "@/stores/history";
 import { useLayoutStore } from "@/stores/layout";
 import { useTabsStore } from "@/stores/tabs";
+import { useUpdaterStore } from "@/stores/updater";
 import ActivityRail from "./ActivityRail.vue";
 import SideBar from "./SideBar.vue";
 import StatusBar from "./StatusBar.vue";
@@ -77,6 +78,8 @@ onMounted(async () => {
     useEnvironmentsStore().load(),
     useHistoryStore().load(),
   ]);
+  // Check quietly after startup so it never delays the first render.
+  setTimeout(() => void useUpdaterStore().checkForUpdate(true), 5000);
 });
 </script>
 

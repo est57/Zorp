@@ -35,6 +35,8 @@ cookie_store = "0.22.1"
 tower-layer = "0.3.3"
 tower-service = "0.3.3"
 rquickjs = "0.14.0"
+tauri-plugin-updater = "2.14.0"
+tauri-plugin-process = "2.4.0"
 
 [profile.release]
 codegen-units = 1
