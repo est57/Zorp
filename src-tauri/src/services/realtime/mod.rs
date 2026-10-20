@@ -1,5 +1,7 @@
 pub mod sse;
 pub mod sse_client;
+pub mod tls;
+pub mod transport;
 pub mod websocket;
 
 use std::collections::HashMap;
@@ -54,5 +56,9 @@ impl Registry {
     }
 }
 
+#[cfg(test)]
+mod network_tests;
+#[cfg(test)]
+mod test_servers;
 #[cfg(test)]
 mod tests;

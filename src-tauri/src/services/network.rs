@@ -94,10 +94,17 @@ pub fn certificate_for<'a>(
     url: &str,
 ) -> Option<&'a ClientCertificate> {
     let host = parse_url(url).ok()?.host_str()?.to_string();
+    certificate_for_host(settings, &host)
+}
+
+pub fn certificate_for_host<'a>(
+    settings: &'a WorkspaceSettings,
+    host: &str,
+) -> Option<&'a ClientCertificate> {
     let candidates = settings
         .client_certificates
         .iter()
-        .filter(|c| c.enabled && host_matches(&c.host, &host));
+        .filter(|c| c.enabled && host_matches(&c.host, host));
     candidates.max_by_key(|c| !c.host.trim().starts_with("*."))
 }
 

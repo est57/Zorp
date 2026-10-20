@@ -1,11 +1,15 @@
 use base64::Engine;
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::mpsc::UnboundedReceiver;
-use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 use tokio_tungstenite::tungstenite::client::IntoClientRequest;
 use tokio_tungstenite::tungstenite::http::{HeaderName, HeaderValue};
+use tokio_tungstenite::{Connector, MaybeTlsStream, WebSocketStream, client_async_tls_with_config};
 
+use std::sync::Arc;
+use std::time::Duration;
+
+use super::transport::{self, Proxy};
 use super::{Emit, Outgoing};
 use crate::error::{AppError, AppResult};
 use crate::models::realtime::RealtimeKind;
@@ -70,18 +74,53 @@ pub fn handshake_request(
     Ok(request)
 }
 
-/// tokio-tungstenite asks rustls for the process default; use the same provider as reqwest.
-fn ensure_crypto_provider() {
-    static INSTALLED: std::sync::Once = std::sync::Once::new();
-    INSTALLED.call_once(|| {
-        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
-    });
+/// Proxy and TLS settings applied to the WebSocket connection.
+pub struct Network {
+    pub proxy: Option<Proxy>,
+    pub tls: Arc<rustls::ClientConfig>,
+    pub timeout: Duration,
+}
+
+async fn open(
+    request: tokio_tungstenite::tungstenite::handshake::client::Request,
+    network: Network,
+) -> AppResult<(WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>, u16)> {
+    let uri = request.uri().clone();
+    let host = uri
+        .host()
+        .unwrap_or_default()
+        .trim_matches(['[', ']'])
+        .to_string();
+    let port = uri
+        .port_u16()
+        .unwrap_or(if uri.scheme_str() == Some("wss") {
+            443
+        } else {
+            80
+        });
+    let handshake = async {
+        let stream = transport::connect(&host, port, network.proxy.as_ref()).await?;
+        client_async_tls_with_config(request, stream, None, Some(Connector::Rustls(network.tls)))
+            .await
+            .map_err(|e| AppError::Network {
+                kind: crate::error::ErrorKind::Connect,
+                message: format!("Gagal terhubung: {e}"),
+            })
+    };
+    let (stream, response) = tokio::time::timeout(network.timeout, handshake)
+        .await
+        .map_err(|_| AppError::Network {
+            kind: crate::error::ErrorKind::Timeout,
+            message: "Server tidak merespons sebelum batas waktu habis".into(),
+        })??;
+    Ok((stream, response.status().as_u16()))
 }
 
 /// Runs a WebSocket connection until either side closes it.
 pub async fn run(
     spec: RequestSpec,
     auth: Auth,
+    network: Network,
     mut outgoing: UnboundedReceiver<Outgoing>,
     emit: Emit,
 ) {
@@ -89,21 +128,13 @@ pub async fn run(
         Ok(request) => request,
         Err(e) => return emit(RealtimeKind::Error, e.to_string(), None, false),
     };
-    ensure_crypto_provider();
-    let (stream, response) = match connect_async(request).await {
+    let (stream, status) = match open(request, network).await {
         Ok(ok) => ok,
-        Err(e) => {
-            return emit(
-                RealtimeKind::Error,
-                format!("Gagal terhubung: {e}"),
-                None,
-                false,
-            );
-        }
+        Err(e) => return emit(RealtimeKind::Error, e.to_string(), None, false),
     };
     emit(
         RealtimeKind::Open,
-        format!("Terhubung (HTTP {})", response.status().as_u16()),
+        format!("Terhubung (HTTP {status})"),
         None,
         false,
     );

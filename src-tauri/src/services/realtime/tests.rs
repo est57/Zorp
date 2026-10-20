@@ -33,6 +33,14 @@ fn spec(url: String, mode: crate::models::realtime::RequestMode) -> RequestSpec 
     }
 }
 
+fn plain_network() -> websocket::Network {
+    websocket::Network {
+        proxy: None,
+        tls: tls::client_config(&Default::default(), true, None).unwrap(),
+        timeout: Duration::from_secs(5),
+    }
+}
+
 fn recorder() -> (Log, Emit) {
     let log: Log = Arc::default();
     let sink = log.clone();
@@ -93,6 +101,7 @@ async fn websocket_sends_headers_echoes_and_closes() {
     let task = tokio::spawn(websocket::run(
         spec(url, crate::models::realtime::RequestMode::Websocket),
         crate::models::request::Auth::None,
+        plain_network(),
         rx,
         emit,
     ));
@@ -128,6 +137,7 @@ async fn websocket_rejects_http_urls() {
             crate::models::realtime::RequestMode::Websocket,
         ),
         crate::models::request::Auth::None,
+        plain_network(),
         rx,
         emit,
     )
