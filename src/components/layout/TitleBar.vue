@@ -5,6 +5,7 @@ import { isMac } from "@/composables/usePlatform";
 import { useAppStore } from "@/stores/app";
 import { useLayoutStore } from "@/stores/layout";
 import EnvSwitcher from "./EnvSwitcher.vue";
+import WorkspaceSwitcher from "./WorkspaceSwitcher.vue";
 
 const app = useAppStore();
 const layout = useLayoutStore();
@@ -30,13 +31,7 @@ const themeLabel = computed(
       @click="layout.toggleSidebar()"
     />
     <span data-tauri-drag-region class="font-mono text-[13px] font-bold tracking-wide">zorp</span>
-    <span
-      v-if="app.info"
-      data-tauri-drag-region
-      class="hidden truncate text-muted min-[1000px]:inline"
-    >
-      {{ app.info.workspace.name }}
-    </span>
+    <WorkspaceSwitcher v-if="app.info" />
     <span data-tauri-drag-region class="flex-1 self-stretch" />
     <EnvSwitcher />
     <IconButton :icon="themeIcon" :label="themeLabel" @click="layout.cycleTheme()" />

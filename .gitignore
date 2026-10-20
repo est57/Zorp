@@ -33,7 +33,7 @@ design.md
 design-mockup.html
 CLAUDE.md
 CLAUDE.local.md
-.claude/settings.local.json
+.claude/
 
 # Secrets and local data
 .env

@@ -78,7 +78,7 @@ mod tests {
     #[test]
     fn saves_imported_collection_with_variables() {
         let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
+        let ws = workspace::current(&conn).unwrap().id;
         let json = r#"{"info":{"name":"A","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},
             "variable":[{"key":"host","value":"h.test"}],
             "item":[{"name":"F","item":[{"name":"R","request":{"method":"GET","url":"{{host}}/x"}}]}]}"#;

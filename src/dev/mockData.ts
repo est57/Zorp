@@ -5,7 +5,16 @@ import type { HistoryItem } from "@/bindings/HistoryItem";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import { newRequest } from "@/utils/request";
 
-export const workspace = { id: "w1", name: "Workspace Contoh", createdAt: Date.now() };
+export const workspace = {
+  id: "w1",
+  name: "Workspace Contoh",
+  createdAt: Date.now(),
+  folder: "/Users/contoh/api-tim",
+};
+export const workspaces = [
+  workspace,
+  { id: "w2", name: "Proyek Pribadi", createdAt: Date.now(), folder: null },
+];
 export const env: Environment = {
   id: "e1",
   name: "Development",

@@ -36,7 +36,7 @@ fn record(state: &AppState, spec: &RequestSpec, result: &AppResult<ResponseData>
         },
         Err(_) => return Ok(()),
     };
-    db::history::insert(&*state.db()?, state.workspace_id, entry)
+    db::history::insert(&*state.db()?, state.workspace_id(), entry)
 }
 
 #[tauri::command]

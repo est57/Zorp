@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useAppStore } from "@/stores/app";
+import SyncIndicator from "./SyncIndicator.vue";
 import UpdateNotice from "./UpdateNotice.vue";
 
 const app = useAppStore();
@@ -27,6 +28,7 @@ const status = computed(() => {
       <span class="size-1.5 shrink-0 rounded-full bg-current" />
       {{ status.text }}
     </span>
+    <SyncIndicator />
     <span class="flex-1" />
     <UpdateNotice />
     <template v-if="app.info">

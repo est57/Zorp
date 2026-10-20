@@ -11,4 +11,5 @@ pub mod response;
 pub mod runner;
 pub mod script;
 pub mod settings;
+pub mod sync;
 pub mod workspace;

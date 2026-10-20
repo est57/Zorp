@@ -98,7 +98,7 @@ pub async fn run_collection(
 ) -> AppResult<RunSummary> {
     let items = db::run_order::ordered_requests(
         &*state.db()?,
-        state.workspace_id,
+        state.workspace_id(),
         collection_id,
         folder_id,
     )?;

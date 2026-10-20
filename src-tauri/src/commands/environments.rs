@@ -8,7 +8,7 @@ use crate::state::AppState;
 
 #[tauri::command]
 pub fn list_environments(state: State<'_, AppState>) -> AppResult<Vec<Environment>> {
-    environments::list(&*state.db()?, state.workspace_id)
+    environments::list(&*state.db()?, state.workspace_id())
 }
 
 #[tauri::command]
@@ -18,7 +18,7 @@ pub fn save_environment(
 ) -> AppResult<Environment> {
     environments::save(
         &*state.db()?,
-        state.workspace_id,
+        state.workspace_id(),
         environment,
         state.secrets.as_ref(),
     )
@@ -31,5 +31,5 @@ pub fn delete_environment(state: State<'_, AppState>, id: Uuid) -> AppResult<()>
 
 #[tauri::command]
 pub fn set_active_environment(state: State<'_, AppState>, id: Option<Uuid>) -> AppResult<()> {
-    environments::set_active(&*state.db()?, state.workspace_id, id)
+    environments::set_active(&*state.db()?, state.workspace_id(), id)
 }

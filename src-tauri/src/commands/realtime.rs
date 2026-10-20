@@ -21,7 +21,7 @@ fn websocket_network(state: &AppState, spec: &RequestSpec) -> AppResult<websocke
     let url = url::Url::parse(spec.url.trim()).map_err(|e| AppError::InvalidUrl(e.to_string()))?;
     let host = url.host_str().unwrap_or_default().to_string();
     let password = if settings.proxy.has_password {
-        state.secrets.get(&proxy_account(state.workspace_id))?
+        state.secrets.get(&proxy_account(state.workspace_id()))?
     } else {
         None
     };

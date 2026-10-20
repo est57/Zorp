@@ -13,10 +13,11 @@ import { specColor, specLabel } from "@/utils/request";
 import { useCollectionCommands } from "./useCollectionCommands";
 import { useImport } from "./useImport";
 import { useRequestActions } from "./useRequestActions";
+import { useWorkspaceCommands } from "./useWorkspaceCommands";
 
 export interface Command {
   id: string;
-  group: "Request" | "Aksi" | "Environment";
+  group: "Request" | "Aksi" | "Environment" | "Workspace";
   label: string;
   detail?: string;
   method?: HttpMethod;
@@ -176,10 +177,12 @@ export function useCommands() {
   });
 
   const collectionCommands = useCollectionCommands();
+  const workspaceCommands = useWorkspaceCommands();
 
   const all = computed(() => [
     ...actionsList.value,
     ...collectionCommands.value,
+    ...workspaceCommands.value,
     ...requests.value,
     ...environments.value,
   ]);

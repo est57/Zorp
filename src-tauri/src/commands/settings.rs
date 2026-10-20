@@ -23,7 +23,7 @@ pub fn save_settings(
     if proxy.enabled {
         network::validate_proxy_url(&proxy.url)?;
     }
-    let account = proxy_account(state.workspace_id);
+    let account = proxy_account(state.workspace_id());
     if proxy.username.is_empty() {
         state.secrets.delete(&account)?;
         proxy.has_password = false;
@@ -48,7 +48,7 @@ pub fn save_settings(
         }
     }
 
-    db::settings::save(&*state.db()?, state.workspace_id, &settings)?;
+    db::settings::save(&*state.db()?, state.workspace_id(), &settings)?;
     state.pool.apply(settings.clone())?;
     Ok(settings)
 }

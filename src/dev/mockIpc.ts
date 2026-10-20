@@ -1,7 +1,7 @@
 // Development-only backend mock for previewing the UI in a plain browser (?mock in the URL).
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import type { RequestSpec } from "@/bindings/RequestSpec";
-import { body, env, history, tree, workspace } from "./mockData";
+import { body, env, history, tree, workspace, workspaces } from "./mockData";
 import { handleRealtime } from "./mockRealtime";
 
 export function installMockBackend() {
@@ -14,6 +14,10 @@ export function installMockBackend() {
       switch (cmd) {
         case "app_info":
           return { version: "0.1.0", schemaVersion: 1, workspace };
+        case "list_workspaces":
+          return { activeId: workspace.id, workspaces };
+        case "sync_status":
+          return { folder: workspace.folder, problems: [] };
         case "list_tree":
           return structuredClone(tree);
         case "list_environments":

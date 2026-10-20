@@ -30,6 +30,8 @@ export const useDialogsStore = defineStore("dialogs", () => {
   const curlImportOpen = ref(false);
   const cookiesOpen = ref(false);
   const settingsOpen = ref(false);
+  /** Environment open in the editor; null id means a new one. */
+  const environmentEditor = ref<{ id: string | null } | null>(null);
   /** Collection or folder opened in the runner. */
   const runnerTarget = ref<{ collectionId: string; folderId: string | null; name: string } | null>(
     null,
@@ -61,6 +63,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
     curlImportOpen,
     cookiesOpen,
     settingsOpen,
+    environmentEditor,
     runnerTarget,
     palette,
     prompt,

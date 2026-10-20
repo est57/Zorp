@@ -19,6 +19,7 @@
 - **GraphQL**: editor query dan variables, dengan autocomplete dan validasi dari skema hasil introspeksi.
 - **WebSocket dan SSE**: pilih **WS** atau **SSE** di pilihan method untuk membuka koneksi real-time, mengirim pesan WebSocket, dan melihat log pesan masuk dan keluar beserta waktunya. Keduanya mengikuti pengaturan proxy, sertifikat CA, dan sertifikat klien (mTLS). Untuk WebSocket, proxy yang didukung adalah `http://` dan `socks5://`/`socks5h://`.
 - **Koleksi**: folder bertingkat, drag-and-drop, multi-tab, dan riwayat request.
+- **Workspace**: beberapa workspace terpisah, masing-masing dengan koleksi, environment, riwayat, cookie, dan pengaturan jaringan sendiri. Workspace bisa disimpan sebagai folder file YAML agar dapat dibagikan lewat Git.
 - **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
 - **Auth**: Bearer, Basic, API key, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi.
 - **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya).
@@ -53,6 +54,27 @@ Installer saat ini belum ditandatangani (unsigned), sehingga sistem operasi akan
 Mulai versi 0.2.0, Zorp memeriksa versi baru beberapa detik setelah dibuka. Jika ada, status bar menampilkan **Versi x.y.z tersedia** beserta tombol **Perbarui**. Setelah unduhan selesai, klik **Mulai ulang** untuk memakai versi baru. Pemeriksaan juga bisa dijalankan kapan saja lewat command palette dengan perintah **Periksa pembaruan**.
 
 Setiap pembaruan ditandatangani dan diverifikasi oleh aplikasi sebelum dipasang. Versi 0.1.0 belum memiliki fitur ini, sehingga perlu diperbarui manual satu kali.
+
+## Workspace di folder (Git)
+
+Pilih nama workspace di title bar, lalu:
+
+- **Simpan ke folder** menyimpan workspace aktif ke folder kosong. Sejak itu setiap perubahan di aplikasi langsung ditulis ke folder.
+- **Buka folder** membuka folder workspace yang sudah ada, misalnya hasil `git clone`. Perubahan file dari luar aplikasi (misalnya setelah `git pull`) dibaca otomatis. Folder milik workspace yang sinkronnya pernah dihentikan akan disambungkan kembali ke workspace tersebut, dengan isi folder sebagai acuan.
+
+Struktur folder:
+
+```text
+zorp.yaml
+collections/<koleksi>/collection.yaml
+collections/<koleksi>/<folder>/folder.yaml
+collections/<koleksi>/<nama-request>.request.yaml
+environments/<nama>.yaml
+```
+
+Yang ikut tersimpan di folder: koleksi, folder, request, script, variabel koleksi, dan environment. Yang tetap lokal: riwayat, cookie, token OAuth, pengaturan proxy dan sertifikat, environment aktif, serta nilai variabel rahasia (tetap di keychain; file hanya mencatat nama variabelnya). Nilai auth yang ditulis langsung di request ikut tersimpan, jadi gunakan variabel rahasia seperti `{{token}}` untuk kredensial.
+
+Jika ada file yang tidak bisa dibaca (misalnya konflik merge), sinkron dijeda dan status bar menampilkan **Sinkron dijeda**. Selama dijeda, file di folder tidak diubah. Setelah file diperbaiki, sinkron berlanjut otomatis.
 
 ## Shortcut
 

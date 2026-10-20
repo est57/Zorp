@@ -13,15 +13,15 @@ use crate::state::AppState;
 pub fn list_tree(state: State<'_, AppState>) -> AppResult<CollectionTree> {
     let conn = state.db()?;
     Ok(CollectionTree {
-        collections: collections::list_collections(&conn, state.workspace_id)?,
-        folders: folders::list_folders(&conn, state.workspace_id)?,
-        requests: requests::list(&conn, state.workspace_id)?,
+        collections: collections::list_collections(&conn, state.workspace_id())?,
+        folders: folders::list_folders(&conn, state.workspace_id())?,
+        requests: requests::list(&conn, state.workspace_id())?,
     })
 }
 
 #[tauri::command]
 pub fn create_collection(state: State<'_, AppState>, name: String) -> AppResult<Collection> {
-    collections::create_collection(&*state.db()?, state.workspace_id, &name)
+    collections::create_collection(&*state.db()?, state.workspace_id(), &name)
 }
 
 #[tauri::command]

@@ -43,6 +43,19 @@ impl CookieJar {
         Ok(String::from_utf8_lossy(&out).into_owned())
     }
 
+    /// Swaps in the cookies of another workspace.
+    pub fn replace(&self, json: Option<&str>) -> AppResult<()> {
+        let store = json
+            .and_then(|j| cookie_store::serde::json::load_all(j.as_bytes()).ok())
+            .unwrap_or_default();
+        *self
+            .store
+            .write()
+            .map_err(|_| AppError::Internal("Cookie jar terkunci".into()))? = store;
+        self.dirty.store(false, Ordering::Release);
+        Ok(())
+    }
+
     /// Returns true once after cookies changed, so callers know when to persist.
     pub fn take_dirty(&self) -> bool {
         self.dirty.swap(false, Ordering::AcqRel)

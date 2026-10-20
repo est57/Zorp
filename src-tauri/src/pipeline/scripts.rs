@@ -66,7 +66,7 @@ fn apply_changes(
     let conn = state.db()?;
     db::variables::apply_env_changes(
         &conn,
-        state.workspace_id,
+        state.workspace_id(),
         state.secrets.as_ref(),
         &out.env,
         &out.env_unset,

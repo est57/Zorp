@@ -12,6 +12,7 @@ pub mod resolver;
 pub mod scripting;
 pub mod secrets;
 pub mod timing;
+pub mod workspace_sync;
 
 #[cfg(test)]
 mod session_tests;

@@ -91,6 +91,11 @@ export const useTabsStore = defineStore("tabs", () => {
     }
   }
 
+  function reset() {
+    tabs.value = [];
+    activeId.value = null;
+  }
+
   return {
     tabs,
     activeId,
@@ -102,5 +107,6 @@ export const useTabsStore = defineStore("tabs", () => {
     close,
     markSaved,
     syncFromTree,
+    reset,
   };
 });

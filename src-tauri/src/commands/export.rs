@@ -22,15 +22,15 @@ pub fn export_collection(
     path: String,
 ) -> AppResult<ExportReport> {
     let conn = state.db()?;
-    let collection = db::collections::list_collections(&conn, state.workspace_id)?
+    let collection = db::collections::list_collections(&conn, state.workspace_id())?
         .into_iter()
         .find(|c| c.id == collection_id)
         .ok_or(AppError::NotFound("Koleksi"))?;
-    let folders: Vec<_> = db::folders::list_folders(&conn, state.workspace_id)?
+    let folders: Vec<_> = db::folders::list_folders(&conn, state.workspace_id())?
         .into_iter()
         .filter(|f| f.collection_id == collection_id)
         .collect();
-    let requests: Vec<_> = db::requests::list(&conn, state.workspace_id)?
+    let requests: Vec<_> = db::requests::list(&conn, state.workspace_id())?
         .into_iter()
         .filter(|r| r.collection_id == collection_id)
         .collect();
@@ -54,7 +54,7 @@ pub fn export_environment(
     environment_id: Uuid,
     path: String,
 ) -> AppResult<()> {
-    let env = db::environments::list(&*state.db()?, state.workspace_id)?
+    let env = db::environments::list(&*state.db()?, state.workspace_id())?
         .into_iter()
         .find(|e| e.id == environment_id)
         .ok_or(AppError::NotFound("Environment"))?;
@@ -70,7 +70,7 @@ pub fn import_environment(state: State<'_, AppState>, path: String) -> AppResult
     let env = environment::from_postman(&std::fs::read_to_string(&path)?)?;
     db::environments::save(
         &*state.db()?,
-        state.workspace_id,
+        state.workspace_id(),
         env,
         state.secrets.as_ref(),
     )

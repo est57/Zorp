@@ -156,7 +156,7 @@ mod tests {
     #[test]
     fn secrets_stay_out_of_sqlite_and_resolve_when_active() {
         let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
+        let ws = workspace::current(&conn).unwrap().id;
         let store = MemoryStore::default();
         let env = Environment {
             id: Uuid::now_v7(),

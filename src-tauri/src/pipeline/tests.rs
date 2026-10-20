@@ -11,7 +11,7 @@ use crate::services::secrets::MemoryStore;
 
 fn state_with_env() -> AppState {
     let conn = db::open_in_memory().unwrap();
-    let ws = db::workspace::ensure_default(&conn).unwrap().id;
+    let ws = db::workspace::current(&conn).unwrap().id;
     let store = MemoryStore::default();
     let env = Environment {
         id: Uuid::now_v7(),
@@ -97,7 +97,7 @@ async fn scripts_shape_the_request_and_update_the_environment() {
 
     let values = db::environments::active_values(
         &state.db().unwrap(),
-        state.workspace_id,
+        state.workspace_id(),
         state.secrets.as_ref(),
     )
     .unwrap();

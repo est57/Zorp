@@ -23,7 +23,7 @@ const open = defineModel<boolean>("open", { required: true });
       >
         <header class="grid gap-1">
           <DialogTitle class="text-base font-semibold">{{ title }}</DialogTitle>
-          <DialogDescription v-if="description" class="text-xs text-muted">{{
+          <DialogDescription v-if="description" class="text-xs whitespace-pre-line text-muted">{{
             description
           }}</DialogDescription>
         </header>

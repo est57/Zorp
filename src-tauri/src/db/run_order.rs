@@ -76,7 +76,7 @@ mod tests {
     #[test]
     fn orders_folders_depth_first_then_requests() {
         let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
+        let ws = workspace::current(&conn).unwrap().id;
         let col = collections::create_collection(&conn, ws, "API").unwrap();
         let auth = folders::create_folder(&conn, col.id, None, "Auth").unwrap();
         let nested = folders::create_folder(&conn, col.id, Some(auth.id), "Nested").unwrap();

@@ -66,7 +66,7 @@ mod tests {
     #[test]
     fn script_changes_update_active_environment_and_keep_secrets_out_of_sqlite() {
         let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
+        let ws = workspace::current(&conn).unwrap().id;
         let store = MemoryStore::default();
         let env = Environment {
             id: Uuid::now_v7(),

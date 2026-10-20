@@ -11,7 +11,7 @@ use crate::services::secrets::MemoryStore;
 
 fn state() -> AppState {
     let conn = db::open_in_memory().unwrap();
-    let ws = db::workspace::ensure_default(&conn).unwrap().id;
+    let ws = db::workspace::current(&conn).unwrap().id;
     AppState::new(
         conn,
         ws,

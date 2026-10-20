@@ -125,7 +125,7 @@ mod tests {
     #[test]
     fn save_upserts_and_move_changes_location() {
         let conn = open_in_memory().unwrap();
-        let ws = workspace::ensure_default(&conn).unwrap().id;
+        let ws = workspace::current(&conn).unwrap().id;
         let col = collections::create_collection(&conn, ws, "API").unwrap();
         let folder = crate::db::folders::create_folder(&conn, col.id, None, "Users").unwrap();
         let spec = RequestSpec {

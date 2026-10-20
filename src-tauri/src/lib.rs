@@ -4,15 +4,9 @@ mod error;
 mod models;
 mod pipeline;
 mod services;
+mod startup;
 mod state;
-
-use tauri::Manager;
-
-use crate::services::cookies::CookieJar;
-use crate::services::secrets::KeychainStore;
-use crate::state::AppState;
-
-const DB_FILE: &str = "zorp.db";
+mod sync;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -22,29 +16,22 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
-            let data_dir = app.path().app_data_dir()?;
-            std::fs::create_dir_all(&data_dir)?;
-            let spill_dir = app.path().app_cache_dir()?.join("responses");
-            // Large response files are only needed for the current session.
-            let _ = std::fs::remove_dir_all(&spill_dir);
-            let conn = db::open(&data_dir.join(DB_FILE))?;
-            let workspace = db::workspace::ensure_default(&conn)?;
-            let jar = db::cookies::load(&conn, workspace.id)?
-                .map(|json| CookieJar::from_json(&json))
-                .unwrap_or_default();
-            let settings = db::settings::load(&conn, workspace.id)?;
-            app.manage(AppState::new(
-                conn,
-                workspace.id,
-                Box::new(KeychainStore),
-                spill_dir,
-                jar,
-                settings,
-            ));
+            if let Err(e) = startup::init(app) {
+                startup::report(app.handle(), &e.to_string());
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
+            commands::workspaces::list_workspaces,
+            commands::workspaces::create_workspace,
+            commands::workspaces::switch_workspace,
+            commands::workspaces::rename_workspace,
+            commands::workspaces::remove_workspace,
+            commands::workspace_folder::sync_status,
+            commands::workspace_folder::open_folder,
+            commands::workspace_folder::link_folder,
+            commands::workspace_folder::unlink_folder,
             commands::http::send_request,
             commands::http::cancel_request,
             commands::collections::list_tree,

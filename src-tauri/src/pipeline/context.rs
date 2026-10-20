@@ -34,8 +34,8 @@ impl RequestContext {
     ) -> AppResult<Self> {
         let conn = state.db()?;
         let environment =
-            db::environments::active_values(&conn, state.workspace_id, state.secrets.as_ref())?;
-        let has_environment = db::environments::list(&conn, state.workspace_id)?
+            db::environments::active_values(&conn, state.workspace_id(), state.secrets.as_ref())?;
+        let has_environment = db::environments::list(&conn, state.workspace_id())?
             .iter()
             .any(|e| e.is_active);
         let collection = match collection_id {

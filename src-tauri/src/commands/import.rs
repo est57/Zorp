@@ -16,5 +16,5 @@ pub fn import_postman(state: State<'_, AppState>, path: String) -> AppResult<Imp
     }
     let json = std::fs::read_to_string(&path)?;
     let imported = postman::parse(&json)?;
-    db::import::save(&*state.db()?, state.workspace_id, imported)
+    db::import::save(&*state.db()?, state.workspace_id(), imported)
 }

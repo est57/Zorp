@@ -7,6 +7,7 @@ pub mod import;
 pub mod requests;
 pub mod run_order;
 pub mod settings;
+pub mod snapshot;
 pub mod variables;
 pub mod workspace;
 
@@ -25,6 +26,7 @@ const MIGRATIONS_SLICE: &[M<'_>] = &[
     M::up(include_str!("../../migrations/0001_init.sql")),
     M::up(include_str!("../../migrations/0002_cookies.sql")),
     M::up(include_str!("../../migrations/0003_settings.sql")),
+    M::up(include_str!("../../migrations/0004_workspaces.sql")),
 ];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;
@@ -46,6 +48,11 @@ fn prepare(mut conn: Connection) -> AppResult<Connection> {
     conn.pragma_update(None, "journal_mode", "WAL")?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     conn.busy_timeout(std::time::Duration::from_secs(5))?;
+    if schema_version(&conn)? > MIGRATIONS_SLICE.len() as i64 {
+        return Err(AppError::Validation(
+            "Database dibuat oleh versi Zorp yang lebih baru. Perbarui Zorp ke versi terbaru untuk membukanya.".into(),
+        ));
+    }
     MIGRATIONS.to_latest(&mut conn)?;
     Ok(conn)
 }

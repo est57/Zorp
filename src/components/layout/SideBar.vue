@@ -8,7 +8,9 @@ import HistoryList from "@/components/sidebar/HistoryList.vue";
 import ImportMenu from "@/components/sidebar/ImportMenu.vue";
 import SearchResults from "@/components/sidebar/SearchResults.vue";
 import { useTreeActions } from "@/components/sidebar/useTreeActions";
+import { useImport } from "@/composables/useImport";
 import { modKey } from "@/composables/usePlatform";
+import { useDialogsStore } from "@/stores/dialogs";
 import { useLayoutStore } from "@/stores/layout";
 import ResizeHandle from "./ResizeHandle.vue";
 
@@ -16,6 +18,8 @@ defineProps<{ overlay: boolean }>();
 
 const layout = useLayoutStore();
 const actions = useTreeActions();
+const dialogs = useDialogsStore();
+const { environmentFromPostman } = useImport();
 const query = ref("");
 const search = ref<HTMLInputElement>();
 
@@ -39,6 +43,18 @@ defineExpose({ focusSearch: () => search.value?.focus() });
         <div v-if="layout.view === 'collections'" class="flex items-center gap-0.5">
           <ImportMenu />
           <IconButton icon="plus" label="Koleksi baru" @click="actions.newCollection" />
+        </div>
+        <div v-else-if="layout.view === 'environments'" class="flex items-center gap-0.5">
+          <IconButton
+            icon="download"
+            label="Impor environment Postman"
+            @click="environmentFromPostman"
+          />
+          <IconButton
+            icon="plus"
+            label="Environment baru"
+            @click="dialogs.environmentEditor = { id: null }"
+          />
         </div>
       </div>
       <label

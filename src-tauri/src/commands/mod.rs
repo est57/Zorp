@@ -10,3 +10,5 @@ pub mod oauth;
 pub mod realtime;
 pub mod runner;
 pub mod settings;
+pub mod workspace_folder;
+pub mod workspaces;

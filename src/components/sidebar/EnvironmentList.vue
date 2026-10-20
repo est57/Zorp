@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed } from "vue";
 import type { Environment } from "@/bindings/Environment";
 import AppButton from "@/components/ui/AppButton.vue";
 import IconButton from "@/components/ui/IconButton.vue";
@@ -16,13 +16,17 @@ const toasts = useToastsStore();
 const exporter = useExport();
 const { environmentFromPostman } = useImport();
 
-const editing = ref<Environment | null>(null);
-const editorOpen = ref(false);
+const editing = computed(
+  () => envs.items.find((e) => e.id === dialogs.environmentEditor?.id) ?? null,
+);
+const editorOpen = computed({
+  get: () => dialogs.environmentEditor !== null,
+  set: (open) => {
+    if (!open) dialogs.environmentEditor = null;
+  },
+});
 
-function edit(env: Environment | null) {
-  editing.value = env;
-  editorOpen.value = true;
-}
+const edit = (env: Environment | null) => (dialogs.environmentEditor = { id: env?.id ?? null });
 
 async function remove(env: Environment) {
   const ok = await dialogs.confirm(
@@ -35,10 +39,15 @@ async function remove(env: Environment) {
 
 <template>
   <div class="grid gap-1 px-1.5 pb-3">
-    <p v-if="envs.items.length === 0" class="px-1.5 py-2 text-xs text-muted">
-      Belum ada environment. Gunakan environment untuk menyimpan variabel seperti base URL dan
-      token.
-    </p>
+    <div v-if="envs.items.length === 0" class="grid gap-3 px-1.5 py-2 text-xs text-muted">
+      <p>Belum ada environment. Environment menyimpan variabel seperti base URL dan token.</p>
+      <div class="flex flex-wrap items-center gap-1">
+        <AppButton icon="plus" @click="edit(null)">Buat environment</AppButton>
+        <AppButton variant="ghost" icon="download" @click="environmentFromPostman"
+          >Impor dari Postman</AppButton
+        >
+      </div>
+    </div>
     <div
       v-for="env in envs.items"
       :key="env.id"
@@ -78,12 +87,6 @@ async function remove(env: Environment) {
         class="opacity-0 group-hover:opacity-100 focus:opacity-100"
         @click="remove(env)"
       />
-    </div>
-    <div class="flex flex-wrap gap-1 px-1.5 pt-2">
-      <AppButton icon="plus" @click="edit(null)">Environment baru</AppButton>
-      <AppButton variant="ghost" icon="download" @click="environmentFromPostman"
-        >Impor dari Postman</AppButton
-      >
     </div>
     <EnvironmentEditor v-model:open="editorOpen" :environment="editing" />
   </div>
