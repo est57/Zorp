@@ -10,6 +10,7 @@ const link = "font-medium text-accent hover:underline";
     v-if="updater.status === 'available' && updater.update"
     class="flex items-center gap-1.5"
     role="status"
+    :title="updater.update.body || undefined"
   >
     Versi {{ updater.update.version }} tersedia.
     <button type="button" :class="link" @click="updater.install()">Perbarui</button>
