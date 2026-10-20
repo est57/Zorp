@@ -45,6 +45,7 @@ pub async fn send_request(
     state: State<'_, AppState>,
     request_id: Uuid,
     spec: RequestSpec,
+    record_history: Option<bool>,
 ) -> AppResult<ResponseData> {
     let progress = |phase, bytes| {
         let _ = app.emit(
@@ -59,7 +60,10 @@ pub async fn send_request(
     // History keeps the request as written, so values injected by scripts (often tokens) are not stored.
     let original = spec.clone();
     let (_, result) = pipeline::execute(&state, spec, request_id, progress).await;
-    record(&state, &original, &result)?;
+    // Background calls such as GraphQL schema introspection opt out of history.
+    if record_history.unwrap_or(true) {
+        record(&state, &original, &result)?;
+    }
     result
 }
 #[tauri::command]

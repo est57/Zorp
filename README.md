@@ -16,6 +16,7 @@
 ## Fitur
 
 - **Request HTTP**: semua method umum, query params yang tersinkron dengan URL, header, body JSON, raw, form-urlencoded, form-data, dan binary.
+- **GraphQL**: editor query dan variables, dengan autocomplete dan validasi dari skema hasil introspeksi.
 - **Koleksi**: folder bertingkat, drag-and-drop, multi-tab, dan riwayat request.
 - **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
 - **Auth**: Bearer, Basic, API key, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi.
@@ -24,6 +25,7 @@
 - **Impor dan ekspor**: koleksi Postman v2.1, perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
 - **Command palette** (`⌘K` / `Ctrl K`) untuk mencari request dan menjalankan aksi.
+- **Pembaruan otomatis**: Zorp memeriksa versi baru saat dibuka dan dapat memasangnya langsung dari aplikasi.
 
 ## Instalasi
 
@@ -35,6 +37,8 @@ Unduh installer untuk sistem operasi Anda dari halaman [Releases](https://github
 | macOS (Intel) | `Zorp_<versi>_x64.dmg` |
 | Windows | `Zorp_<versi>_x64-setup.exe` atau `.msi` |
 | Linux | `.AppImage`, `.deb`, atau `.rpm` |
+
+Mulai versi 0.2.0, pembaruan berikutnya dapat dipasang langsung dari dalam aplikasi. Versi 0.1.0 belum memiliki fitur ini, sehingga perlu diperbarui manual satu kali.
 
 Installer saat ini belum ditandatangani (unsigned), sehingga sistem operasi akan menampilkan peringatan saat pertama kali dibuka.
 
@@ -96,12 +100,14 @@ src-tauri/           Backend Rust
 
 ## Rilis
 
+Persiapan satu kali: pembaruan otomatis membutuhkan kunci penanda tangan updater. Simpan isi private key dan password-nya sebagai secret repository di GitHub (**Settings > Secrets and variables > Actions**) dengan nama `TAURI_SIGNING_PRIVATE_KEY` dan `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. Public key-nya sudah tercantum di `src-tauri/tauri.conf.json`. Kunci yang sama juga dibutuhkan untuk `pnpm tauri build` di komputer lokal, melalui environment variable dengan nama yang sama.
+
 1. Samakan versi di `package.json`, `src-tauri/Cargo.toml`, dan `src-tauri/tauri.conf.json`.
 2. Buat tag dengan format `v<versi>`, lalu push:
    ```bash
    git tag v0.1.0 && git push origin v0.1.0
    ```
-3. Workflow **Release** akan membuat installer untuk macOS, Windows, dan Linux sebagai draft release. Periksa draft tersebut, lalu terbitkan.
+3. Workflow **Release** akan membuat installer untuk macOS, Windows, dan Linux, beserta `latest.json` untuk pembaruan otomatis, sebagai draft release. Periksa draft tersebut, lalu terbitkan. Aplikasi yang sudah terpasang baru melihat versi baru setelah release diterbitkan.
 
 ## Lisensi
 

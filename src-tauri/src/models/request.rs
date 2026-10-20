@@ -53,11 +53,27 @@ pub enum MultipartPart {
 #[ts(export)]
 pub enum Body {
     None,
-    Json { text: String },
-    Raw { text: String, content_type: String },
-    FormUrlEncoded { fields: Vec<KeyValue> },
-    Multipart { parts: Vec<MultipartPart> },
-    Binary { path: String },
+    Json {
+        text: String,
+    },
+    Raw {
+        text: String,
+        content_type: String,
+    },
+    FormUrlEncoded {
+        fields: Vec<KeyValue>,
+    },
+    Multipart {
+        parts: Vec<MultipartPart>,
+    },
+    Binary {
+        path: String,
+    },
+    /// Sent as a JSON POST body: `{ "query": ..., "variables": ... }`.
+    Graphql {
+        query: String,
+        variables: String,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, TS)]

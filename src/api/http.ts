@@ -4,8 +4,8 @@ import type { RequestSpec } from "@/bindings/RequestSpec";
 import type { ResponseData } from "@/bindings/ResponseData";
 import { invoke, isTauri } from "./invoke";
 
-export const sendRequest = (requestId: string, spec: RequestSpec) =>
-  invoke<ResponseData>("send_request", { requestId, spec });
+export const sendRequest = (requestId: string, spec: RequestSpec, recordHistory = true) =>
+  invoke<ResponseData>("send_request", { requestId, spec, recordHistory });
 
 export const cancelRequest = (requestId: string) => invoke<void>("cancel_request", { requestId });
 

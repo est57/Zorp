@@ -78,14 +78,13 @@ pub fn parse_body(value: Option<&Value>, warnings: &mut Vec<String>, owner: &str
         "graphql" => {
             let graphql = body.get("graphql").cloned().unwrap_or(Value::Null);
             let variables = match graphql.get("variables") {
-                Some(Value::String(s)) => serde_json::from_str(s).unwrap_or(Value::Null),
-                Some(other) => other.clone(),
-                None => Value::Null,
+                Some(Value::String(s)) => s.clone(),
+                Some(Value::Null) | None => String::new(),
+                Some(other) => serde_json::to_string_pretty(other).unwrap_or_default(),
             };
-            let payload =
-                serde_json::json!({ "query": text_of(&graphql, "query"), "variables": variables });
-            Body::Json {
-                text: serde_json::to_string_pretty(&payload).unwrap_or_default(),
+            Body::Graphql {
+                query: text_of(&graphql, "query"),
+                variables,
             }
         }
         "" => Body::None,

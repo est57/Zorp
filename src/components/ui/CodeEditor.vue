@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Compartment, EditorState } from "@codemirror/state";
+import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { json } from "@codemirror/lang-json";
 import { javascript } from "@codemirror/lang-javascript";
 import { baseExtensions } from "./codemirror";
 
 const props = withDefaults(
-  defineProps<{ readonly?: boolean; language?: "json" | "text" | "javascript"; label: string }>(),
-  {
-    readonly: false,
-    language: "text",
-  },
+  defineProps<{
+    readonly?: boolean;
+    language?: "json" | "text" | "javascript";
+    label: string;
+    /** Replaces the language extension, for example a schema-aware GraphQL mode. */
+    extensions?: Extension;
+  }>(),
+  { readonly: false, language: "text", extensions: undefined },
 );
 const model = defineModel<string>({ required: true });
 
@@ -20,7 +23,8 @@ const languageSlot = new Compartment();
 let view: EditorView | null = null;
 
 const languageExtension = () =>
-  props.language === "json" ? json() : props.language === "javascript" ? javascript() : [];
+  props.extensions ??
+  (props.language === "json" ? json() : props.language === "javascript" ? javascript() : []);
 
 onMounted(() => {
   view = new EditorView({
@@ -47,7 +51,7 @@ watch(model, (value) => {
 });
 
 watch(
-  () => props.language,
+  () => [props.language, props.extensions],
   () => view?.dispatch({ effects: languageSlot.reconfigure(languageExtension()) }),
 );
 

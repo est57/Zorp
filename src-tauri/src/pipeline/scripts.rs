@@ -23,6 +23,11 @@ fn script_request(spec: &RequestSpec) -> ScriptRequest {
             .collect(),
         body: match &spec.body {
             Body::Json { text } | Body::Raw { text, .. } => Some(text.clone()),
+            Body::Graphql { query, variables } => {
+                crate::services::request_builder::graphql_payload(query, variables)
+                    .ok()
+                    .map(|v| v.to_string())
+            }
             _ => None,
         },
     }

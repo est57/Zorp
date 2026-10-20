@@ -169,3 +169,33 @@ async fn connection_refused_is_classified() {
         }
     ));
 }
+
+#[tokio::test]
+async fn sends_graphql_as_json_with_resolved_variables() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(header("content-type", "application/json"))
+        .and(body_string(
+            r#"{"query":"query($id: ID!) { user(id: $id) { name } }","variables":{"id":"42"}}"#,
+        ))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&server)
+        .await;
+
+    let mut req = spec(HttpMethod::Post, &server.uri());
+    req.body = Body::Graphql {
+        query: "query($id: ID!) { user(id: $id) { name } }".into(),
+        variables: r#"{"id": "{{user_id}}"}"#.into(),
+    };
+    let vars = Variables::from_layers(vec![vec![("user_id".to_string(), "42".to_string())]]);
+    assert_eq!(send(&req, vars).await.unwrap().status, 200);
+
+    req.body = Body::Graphql {
+        query: "{ a }".into(),
+        variables: "{oops".into(),
+    };
+    let err = send(&req, Variables::from_layers(Vec::<Vec<_>>::new()))
+        .await
+        .unwrap_err();
+    assert!(matches!(err, AppError::Validation(ref m) if m.contains("Variables GraphQL")));
+}

@@ -2,4 +2,4 @@
 import type { KeyValue } from "./KeyValue";
 import type { MultipartPart } from "./MultipartPart";
 
-export type Body = { "type": "none" } | { "type": "json", text: string, } | { "type": "raw", text: string, contentType: string, } | { "type": "form_url_encoded", fields: Array<KeyValue>, } | { "type": "multipart", parts: Array<MultipartPart>, } | { "type": "binary", path: string, };
+export type Body = { "type": "none" } | { "type": "json", text: string, } | { "type": "raw", text: string, contentType: string, } | { "type": "form_url_encoded", fields: Array<KeyValue>, } | { "type": "multipart", parts: Array<MultipartPart>, } | { "type": "binary", path: string, } | { "type": "graphql", query: string, variables: string, };

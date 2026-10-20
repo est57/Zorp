@@ -87,11 +87,27 @@ fn apply_body(
             }
             builder.multipart(form)
         }
+        Body::Graphql { query, variables } => {
+            let body = serde_json::to_string(&graphql_payload(query, variables)?)?;
+            with_type(builder, "application/json").body(body)
+        }
         Body::Binary { path } => {
             let (bytes, _) = read_file(path)?;
             with_type(builder, "application/octet-stream").body(bytes)
         }
     })
+}
+
+/// JSON body for a GraphQL request; empty variables are sent as an empty object.
+pub fn graphql_payload(query: &str, variables: &str) -> AppResult<serde_json::Value> {
+    let variables: serde_json::Value = if variables.trim().is_empty() {
+        serde_json::json!({})
+    } else {
+        serde_json::from_str(variables).map_err(|e| {
+            AppError::Validation(format!("Variables GraphQL bukan JSON yang valid: {e}"))
+        })?
+    };
+    Ok(serde_json::json!({ "query": query, "variables": variables }))
 }
 
 /// Builds a ready-to-send request from an already resolved spec.

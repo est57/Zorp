@@ -69,3 +69,30 @@ describe("code generation", () => {
       expect(target.generate(req)).toContain("https://x.test/a?api_key=k%201");
   });
 });
+
+describe("graphql snippets", () => {
+  it("sends the query and parsed variables as JSON", () => {
+    const req = toSnippetRequest(
+      newRequest({
+        method: "POST",
+        url: "{{base}}/graphql",
+        body: {
+          type: "graphql",
+          query: "query($id: ID!) { user(id: $id) { name } }",
+          variables: '{"id": 7}',
+        },
+      }),
+      { type: "none" },
+      resolve,
+    );
+    expect(req.headers).toContainEqual(["Content-Type", "application/json"]);
+    expect(req.body).toEqual({
+      kind: "text",
+      text: JSON.stringify({
+        query: "query($id: ID!) { user(id: $id) { name } }",
+        variables: { id: 7 },
+      }),
+    });
+    expect(parseCurl(toCurl(req)).body.type).toBe("json");
+  });
+});

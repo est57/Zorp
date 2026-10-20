@@ -8,6 +8,7 @@ import KeyValueTable from "@/components/ui/KeyValueTable.vue";
 import { selectClass } from "@/components/ui/styles";
 import { fileName, pickFile } from "@/utils/files";
 import { jsonError, prettyJson } from "@/utils/json";
+import GraphqlEditor from "./GraphqlEditor.vue";
 import MultipartTable from "./MultipartTable.vue";
 
 const props = defineProps<{ spec: RequestSpec }>();
@@ -15,6 +16,7 @@ const props = defineProps<{ spec: RequestSpec }>();
 const types: { type: Body["type"]; label: string }[] = [
   { type: "none", label: "Tanpa body" },
   { type: "json", label: "JSON" },
+  { type: "graphql", label: "GraphQL" },
   { type: "form_url_encoded", label: "x-www-form-urlencoded" },
   { type: "multipart", label: "form-data" },
   { type: "raw", label: "Raw" },
@@ -39,8 +41,11 @@ function setType(type: Body["type"]) {
     form_url_encoded: { type: "form_url_encoded", fields: [] },
     multipart: { type: "multipart", parts: [] },
     binary: { type: "binary", path: "" },
+    graphql: { type: "graphql", query: "query {\n  \n}\n", variables: "" },
   };
   props.spec.body = next[type];
+  // GraphQL servers expect POST; GET with a body is rarely supported.
+  if (type === "graphql" && props.spec.method === "GET") props.spec.method = "POST";
 }
 
 const error = computed(() =>
@@ -100,6 +105,11 @@ async function chooseBinary() {
         v-else-if="spec.body.type === 'form_url_encoded'"
         v-model="spec.body.fields"
         name="Field form"
+      />
+      <GraphqlEditor
+        v-else-if="spec.body.type === 'graphql'"
+        :spec="spec as RequestSpec & { body: { type: 'graphql' } }"
+        class="-mt-px"
       />
       <MultipartTable v-else-if="spec.body.type === 'multipart'" v-model="spec.body.parts" />
       <div v-else-if="spec.body.type === 'binary'" class="flex items-center gap-3 p-3 text-xs">

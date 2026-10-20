@@ -16,6 +16,16 @@ export interface SnippetRequest {
   body: SnippetBody;
 }
 
+/** GraphQL variables as JSON; text that is not valid JSON is passed through unchanged. */
+function parseVariables(text: string): unknown {
+  if (!text.trim()) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 const base64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
 
 /** Flattens a request and its effective auth into what code generators need. */
@@ -63,6 +73,10 @@ export function toSnippetRequest(
           : { key: r1(p.key), value: r1(p.value) },
       );
     snippetBody = { kind: "multipart", parts };
+  } else if (body.type === "graphql") {
+    if (!hasHeader("content-type")) headers.push(["Content-Type", "application/json"]);
+    const variables = parseVariables(r1(body.variables));
+    snippetBody = { kind: "text", text: JSON.stringify({ query: r1(body.query), variables }) };
   } else if (body.type === "binary") {
     snippetBody = { kind: "file", path: body.path };
   }

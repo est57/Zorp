@@ -113,6 +113,10 @@ fn resolve_body(vars: &Variables, body: &Body, missing: &mut BTreeSet<String>) -
                 .collect(),
         },
         Body::Binary { path } => Body::Binary { path: path.clone() },
+        Body::Graphql { query, variables } => Body::Graphql {
+            query: vars.resolve(query, missing),
+            variables: vars.resolve(variables, missing),
+        },
     }
 }
 
