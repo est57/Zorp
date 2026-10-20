@@ -11,6 +11,7 @@ use crate::error::{AppError, AppResult};
 use crate::models::settings::WorkspaceSettings;
 use crate::services::client_pool::{ClientKey, ClientPool};
 use crate::services::cookies::CookieJar;
+use crate::services::realtime::Registry;
 use crate::services::secrets::SecretStore;
 
 pub struct AppState {
@@ -20,6 +21,7 @@ pub struct AppState {
     pub spill_dir: PathBuf,
     pub cookies: Arc<CookieJar>,
     pub pool: ClientPool,
+    pub realtime: Registry,
     inflight: Mutex<HashMap<Uuid, oneshot::Sender<()>>>,
 }
 
@@ -43,6 +45,7 @@ impl AppState {
             spill_dir,
             cookies: Arc::new(cookies),
             pool: ClientPool::new(settings),
+            realtime: Registry::default(),
             inflight: Mutex::default(),
         }
     }

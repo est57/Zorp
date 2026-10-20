@@ -2,9 +2,11 @@
 import { ref } from "vue";
 import RequestEditor from "@/components/request/RequestEditor.vue";
 import UrlBar from "@/components/request/UrlBar.vue";
+import RealtimePanel from "@/components/realtime/RealtimePanel.vue";
 import ResponsePanel from "@/components/response/ResponsePanel.vue";
 import { useRequestActions } from "@/composables/useRequestActions";
 import { useDialogsStore } from "@/stores/dialogs";
+import { useRealtimeStore } from "@/stores/realtime";
 import { useRunnerStore } from "@/stores/runner";
 import { useTabsStore } from "@/stores/tabs";
 import EmptyWorkspace from "./EmptyWorkspace.vue";
@@ -12,6 +14,7 @@ import SplitPane from "./SplitPane.vue";
 
 const tabs = useTabsStore();
 const runner = useRunnerStore();
+const realtime = useRealtimeStore();
 const actions = useRequestActions();
 const dialogs = useDialogsStore();
 const urlBar = ref<InstanceType<typeof UrlBar>>();
@@ -25,6 +28,7 @@ defineExpose({ focusUrl: () => urlBar.value?.focus() });
       ref="urlBar"
       :spec="tabs.active.draft"
       :loading="runner.get(tabs.active.id).status === 'loading'"
+      :connection="realtime.get(tabs.active.id)?.status ?? 'idle'"
       :dirty="tabs.isDirty(tabs.active)"
       @send="actions.send(tabs.active)"
       @cancel="actions.cancel(tabs.active)"
@@ -36,7 +40,10 @@ defineExpose({ focusUrl: () => urlBar.value?.focus() });
       <template #top
         ><RequestEditor :spec="tabs.active.draft" :collection-id="tabs.active.collectionId"
       /></template>
-      <template #bottom><ResponsePanel :run="runner.get(tabs.active.id)" /></template>
+      <template #bottom
+        ><RealtimePanel v-if="tabs.active.draft.mode !== 'http'" :tab="tabs.active" />
+        <ResponsePanel v-else :run="runner.get(tabs.active.id)"
+      /></template>
     </SplitPane>
   </div>
   <EmptyWorkspace v-else />

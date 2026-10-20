@@ -15,6 +15,7 @@ fn spec(name: &str) -> RequestSpec {
         body: Body::None,
         auth: Auth::Inherit,
         settings: RequestSettings::default(),
+        mode: Default::default(),
         scripts: Default::default(),
     }
 }

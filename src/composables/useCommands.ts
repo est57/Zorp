@@ -9,6 +9,7 @@ import { useLayoutStore } from "@/stores/layout";
 import { useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
 import { useUpdaterStore } from "@/stores/updater";
+import { specColor, specLabel } from "@/utils/request";
 import { useImport } from "./useImport";
 import { useRequestActions } from "./useRequestActions";
 
@@ -18,6 +19,8 @@ export interface Command {
   label: string;
   detail?: string;
   method?: HttpMethod;
+  /** Badge shown before the label; defaults to the HTTP method. */
+  tag?: { text: string; className: string };
   keys?: string;
   run: () => unknown;
 }
@@ -53,6 +56,7 @@ export function useCommands() {
       label: item.spec.name,
       detail: locationOf(item.collectionId, item.folderId),
       method: item.spec.method,
+      tag: { text: specLabel(item.spec), className: specColor(item.spec) },
       run: () => tabs.openSaved(item),
     })),
   );

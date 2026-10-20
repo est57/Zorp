@@ -73,6 +73,9 @@ pub fn run() {
             commands::settings::save_settings,
             commands::runner::run_collection,
             commands::runner::cancel_run,
+            commands::realtime::realtime_connect,
+            commands::realtime::realtime_send,
+            commands::realtime::realtime_close,
         ])
         .run(tauri::generate_context!())
         .expect("failed to start Zorp");

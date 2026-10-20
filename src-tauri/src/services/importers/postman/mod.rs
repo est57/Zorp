@@ -65,6 +65,7 @@ fn parse_request(name: String, request: &Value, warnings: &mut Vec<String>) -> R
         body: parse_body(request.get("body"), warnings, &name),
         auth: parse_auth(request.get("auth"), warnings, &name).unwrap_or(Auth::Inherit),
         settings: RequestSettings::default(),
+        mode: Default::default(),
         scripts: Default::default(),
         name,
     }

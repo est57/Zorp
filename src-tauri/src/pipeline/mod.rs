@@ -42,14 +42,19 @@ pub async fn execute(
     (spec, result)
 }
 
-async fn send(
+/// A request with variables substituted, auth resolved (OAuth tokens fetched) and a matching client.
+pub struct Prepared {
+    pub spec: RequestSpec,
+    pub auth: Auth,
+    pub client: reqwest::Client,
+}
+
+pub async fn prepare(
     state: &AppState,
     spec: &RequestSpec,
     ctx: &RequestContext,
     locals: &std::collections::HashMap<String, String>,
-    request_id: Uuid,
-    progress: impl Fn(ProgressPhase, u64),
-) -> AppResult<ResponseData> {
+) -> AppResult<Prepared> {
     let vars = ctx.variables(locals);
     let auth = ctx.effective_auth(state, spec)?;
     let (resolved, auth) = resolve_spec(spec, &auth, &vars)?;
@@ -69,7 +74,23 @@ async fn send(
         }
         other => other,
     };
-    let builder = request_builder::build(&client, &resolved, &auth)?;
+    Ok(Prepared {
+        spec: resolved,
+        auth,
+        client,
+    })
+}
+
+async fn send(
+    state: &AppState,
+    spec: &RequestSpec,
+    ctx: &RequestContext,
+    locals: &std::collections::HashMap<String, String>,
+    request_id: Uuid,
+    progress: impl Fn(ProgressPhase, u64),
+) -> AppResult<ResponseData> {
+    let prepared = prepare(state, spec, ctx, locals).await?;
+    let builder = request_builder::build(&prepared.client, &prepared.spec, &prepared.auth)?;
     let cancelled = state.register(request_id)?;
     let result = tokio::select! {
         result = http_engine::execute(builder, &state.spill_dir, progress) => result,

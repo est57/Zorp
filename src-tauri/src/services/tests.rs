@@ -20,6 +20,7 @@ fn spec(method: HttpMethod, url: &str) -> RequestSpec {
         body: Body::None,
         auth: Auth::None,
         settings: RequestSettings::default(),
+        mode: Default::default(),
         scripts: Default::default(),
     }
 }

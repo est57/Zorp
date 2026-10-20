@@ -138,6 +138,7 @@ mod tests {
             body: Body::None,
             auth: Auth::Inherit,
             settings: RequestSettings::default(),
+            mode: Default::default(),
             scripts: Default::default(),
         };
         let first = save(&conn, spec.clone(), col.id, None).unwrap();

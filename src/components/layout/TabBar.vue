@@ -2,7 +2,7 @@
 import IconButton from "@/components/ui/IconButton.vue";
 import { useRequestActions } from "@/composables/useRequestActions";
 import { useTabsStore } from "@/stores/tabs";
-import { methodColor, methodLabel } from "@/utils/request";
+import { specColor, specLabel } from "@/utils/request";
 
 const tabs = useTabsStore();
 const actions = useRequestActions();
@@ -31,8 +31,8 @@ const actions = useRequestActions();
           class="flex h-full min-w-0 items-center gap-2 pr-1 pl-3"
           @click="tabs.activeId = tab.id"
         >
-          <span class="font-mono text-[10px] font-semibold" :class="methodColor(tab.draft.method)">
-            {{ methodLabel(tab.draft.method) }}
+          <span class="font-mono text-[10px] font-semibold" :class="specColor(tab.draft)">
+            {{ specLabel(tab.draft) }}
           </span>
           <span class="truncate">{{ tab.draft.name }}</span>
         </button>

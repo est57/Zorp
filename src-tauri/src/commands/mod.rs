@@ -6,5 +6,6 @@ pub mod history;
 pub mod http;
 pub mod import;
 pub mod oauth;
+pub mod realtime;
 pub mod runner;
 pub mod settings;

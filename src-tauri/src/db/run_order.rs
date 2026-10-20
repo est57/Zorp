@@ -4,8 +4,10 @@ use uuid::Uuid;
 use super::{folders, requests};
 use crate::error::AppResult;
 use crate::models::collection::{Folder, SavedRequest};
+use crate::models::realtime::RequestMode;
 
-/// Requests under a collection or folder in sidebar order: sub-folders first (depth first), then requests.
+/// HTTP requests under a collection or folder in sidebar order: sub-folders first (depth first),
+/// then requests. WebSocket and SSE requests are long-lived connections, so runs skip them.
 pub fn ordered_requests(
     conn: &Connection,
     workspace_id: Uuid,
@@ -43,6 +45,7 @@ fn collect(
     let mut items: Vec<&SavedRequest> = requests
         .iter()
         .filter(|r| r.collection_id == collection_id && r.folder_id == parent)
+        .filter(|r| r.spec.mode == RequestMode::Http)
         .collect();
     items.sort_by(|a, b| a.sort_order.total_cmp(&b.sort_order));
     out.extend(items.into_iter().cloned());
@@ -65,6 +68,7 @@ mod tests {
             body: Body::None,
             auth: Auth::None,
             settings: RequestSettings::default(),
+            mode: Default::default(),
             scripts: Default::default(),
         }
     }
@@ -79,6 +83,11 @@ mod tests {
         requests::save(&conn, spec("root"), col.id, None).unwrap();
         requests::save(&conn, spec("login"), col.id, Some(auth.id)).unwrap();
         requests::save(&conn, spec("deep"), col.id, Some(nested.id)).unwrap();
+        let socket = RequestSpec {
+            mode: RequestMode::Websocket,
+            ..spec("socket")
+        };
+        requests::save(&conn, socket, col.id, None).unwrap();
 
         let names: Vec<String> = ordered_requests(&conn, ws, col.id, None)
             .unwrap()

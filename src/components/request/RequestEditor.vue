@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import KeyValueTable from "@/components/ui/KeyValueTable.vue";
 import SegmentedTabs, { type TabItem } from "@/components/ui/SegmentedTabs.vue";
@@ -15,7 +15,7 @@ const section = ref(props.spec.body.type !== "none" ? "body" : "params");
 const count = (rows: { enabled: boolean; key: string }[]) =>
   rows.filter((r) => r.enabled && r.key).length || undefined;
 
-const sections = computed<TabItem[]>(() => [
+const allSections = computed<TabItem[]>(() => [
   { id: "params", label: "Params", badge: count(props.spec.params) },
   { id: "headers", label: "Headers", badge: count(props.spec.headers) },
   { id: "body", label: "Body", badge: props.spec.body.type === "none" ? undefined : "1" },
@@ -29,6 +29,16 @@ const sections = computed<TabItem[]>(() => [
   },
   { id: "settings", label: "Pengaturan" },
 ]);
+
+// Body and scripts apply only to HTTP requests.
+const sections = computed(() =>
+  props.spec.mode === "http"
+    ? allSections.value
+    : allSections.value.filter((s) => s.id !== "body" && s.id !== "scripts"),
+);
+watch(sections, (list) => {
+  if (!list.some((s) => s.id === section.value)) section.value = "params";
+});
 
 function setParams(rows: RequestSpec["params"]) {
   props.spec.params = rows;

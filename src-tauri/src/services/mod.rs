@@ -5,6 +5,7 @@ pub mod http_engine;
 pub mod importers;
 pub mod network;
 pub mod oauth;
+pub mod realtime;
 pub mod request_builder;
 pub mod resolver;
 pub mod scripting;

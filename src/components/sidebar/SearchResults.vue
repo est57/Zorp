@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useCollectionsStore } from "@/stores/collections";
 import { useTabsStore } from "@/stores/tabs";
-import { methodColor, methodLabel } from "@/utils/request";
+import { specColor, specLabel } from "@/utils/request";
 
 const props = defineProps<{ query: string }>();
 const collections = useCollectionsStore();
@@ -31,9 +31,9 @@ const results = computed(() => {
     >
       <span
         class="w-8 shrink-0 text-right font-mono text-[10px] font-semibold"
-        :class="methodColor(item.spec.method)"
+        :class="specColor(item.spec)"
       >
-        {{ methodLabel(item.spec.method) }}
+        {{ specLabel(item.spec) }}
       </span>
       <span class="truncate">{{ item.spec.name }}</span>
     </button>

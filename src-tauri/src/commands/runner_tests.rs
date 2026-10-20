@@ -37,6 +37,7 @@ fn item(name: &str, url: String, test: &str) -> SavedRequest {
             body: Body::None,
             auth: Auth::None,
             settings: RequestSettings::default(),
+            mode: Default::default(),
             scripts: Scripts {
                 pre_request: String::new(),
                 test: test.into(),

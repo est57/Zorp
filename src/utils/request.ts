@@ -20,6 +20,7 @@ export function newRequest(overrides: Partial<RequestSpec> = {}): RequestSpec {
     auth: { type: "inherit" },
     settings: { timeoutMs: 30000, followRedirects: true, verifyTls: true, useCookies: true },
     scripts: { preRequest: "", test: "" },
+    mode: "http",
     ...overrides,
   };
 }
@@ -46,3 +47,10 @@ export const methodColor = (method: HttpMethod) =>
       OPTIONS: "text-muted",
     }) as const
   )[method];
+
+/** Short badge for a request: its HTTP method, or WS / SSE for real-time connections. */
+export const specLabel = (spec: Pick<RequestSpec, "method" | "mode">) =>
+  spec.mode === "websocket" ? "WS" : spec.mode === "sse" ? "SSE" : methodLabel(spec.method);
+
+export const specColor = (spec: Pick<RequestSpec, "method" | "mode">) =>
+  spec.mode === "http" ? methodColor(spec.method) : "text-[var(--info)]";

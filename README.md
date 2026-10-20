@@ -17,6 +17,7 @@
 
 - **Request HTTP**: semua method umum, query params yang tersinkron dengan URL, header, body JSON, raw, form-urlencoded, form-data, dan binary.
 - **GraphQL**: editor query dan variables, dengan autocomplete dan validasi dari skema hasil introspeksi.
+- **WebSocket dan SSE**: pilih **WS** atau **SSE** di pilihan method untuk membuka koneksi real-time, mengirim pesan WebSocket, dan melihat log pesan masuk dan keluar beserta waktunya.
 - **Koleksi**: folder bertingkat, drag-and-drop, multi-tab, dan riwayat request.
 - **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
 - **Auth**: Bearer, Basic, API key, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi.
@@ -106,7 +107,7 @@ src/                 Frontend Vue 3 + TypeScript
 src-tauri/           Backend Rust
   src/commands/      Perintah IPC
   src/pipeline/      Alur kirim: pre-request script, kirim, test script
-  src/services/      Mesin HTTP, resolver variabel, OAuth, script, cookie, jaringan
+  src/services/      Mesin HTTP, resolver variabel, OAuth, script, cookie, jaringan, WebSocket dan SSE
   src/db/            Penyimpanan SQLite dan migrasi
 ```
 

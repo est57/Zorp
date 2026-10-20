@@ -118,8 +118,8 @@ function run(index = activeIndex.value) {
             <span
               v-if="item.command.method"
               class="w-8 shrink-0 text-right font-mono text-[10px] font-semibold"
-              :class="methodColor(item.command.method)"
-              >{{ methodLabel(item.command.method) }}</span
+              :class="item.command.tag?.className ?? methodColor(item.command.method)"
+              >{{ item.command.tag?.text ?? methodLabel(item.command.method) }}</span
             >
             <span class="min-w-0 truncate">
               <template v-for="(part, i) in highlight(item.command.label, item.indices)" :key="i">

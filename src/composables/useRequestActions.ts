@@ -1,5 +1,6 @@
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
+import { useRealtimeStore } from "@/stores/realtime";
 import { useRunnerStore } from "@/stores/runner";
 import { type Tab, useTabsStore } from "@/stores/tabs";
 import { useToastsStore } from "@/stores/toasts";
@@ -7,6 +8,7 @@ import { useToastsStore } from "@/stores/toasts";
 export function useRequestActions() {
   const tabs = useTabsStore();
   const runner = useRunnerStore();
+  const realtime = useRealtimeStore();
   const collections = useCollectionsStore();
   const dialogs = useDialogsStore();
   const toasts = useToastsStore();
@@ -35,11 +37,16 @@ export function useRequestActions() {
       if (!ok) return;
     }
     void runner.cancel(tab.id);
+    void realtime.disconnect(tab.id);
     runner.forget(tab.id);
     tabs.close(tab.id);
   }
 
-  const send = (tab: Tab) => runner.send(tab);
+  /** HTTP requests are sent once; WebSocket and SSE requests toggle a connection. */
+  function send(tab: Tab) {
+    if (tab.draft.mode === "http") return runner.send(tab);
+    return realtime.isActive(tab.id) ? realtime.disconnect(tab.id) : realtime.connect(tab);
+  }
   const cancel = (tab: Tab) => runner.cancel(tab.id);
 
   return { save, close, send, cancel };

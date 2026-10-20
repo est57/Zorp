@@ -4,7 +4,7 @@ import AppIcon from "@/components/ui/AppIcon.vue";
 import { useCollectionsStore } from "@/stores/collections";
 import { useDialogsStore } from "@/stores/dialogs";
 import { useTabsStore } from "@/stores/tabs";
-import { methodColor, methodLabel } from "@/utils/request";
+import { specColor, specLabel } from "@/utils/request";
 import TreeRow, { type MenuItem } from "./TreeRow.vue";
 import { useTreeActions } from "./useTreeActions";
 
@@ -112,9 +112,9 @@ const drag = (kind: "folder" | "request", id: string) =>
       <template #lead>
         <span
           class="w-8 shrink-0 text-right font-mono text-[10px] font-semibold"
-          :class="methodColor(item.spec.method)"
+          :class="specColor(item.spec)"
         >
-          {{ methodLabel(item.spec.method) }}
+          {{ specLabel(item.spec) }}
         </span>
       </template>
     </TreeRow>

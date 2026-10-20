@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
+import type { HttpMethod } from "@/bindings/HttpMethod";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import AppButton from "@/components/ui/AppButton.vue";
 import VariableInput from "@/components/ui/VariableInput.vue";
@@ -7,15 +8,44 @@ import { useDialogsStore } from "@/stores/dialogs";
 import { useToastsStore } from "@/stores/toasts";
 import { applyCurl, looksLikeCurl } from "@/utils/curl/apply";
 import { parseCurl } from "@/utils/curl/parse";
-import { METHODS, methodColor } from "@/utils/request";
+import type { ConnectionStatus } from "@/stores/realtime";
+import { METHODS, specColor } from "@/utils/request";
 import { paramsFromUrl } from "@/utils/url";
 
-const props = defineProps<{ spec: RequestSpec; loading: boolean; dirty: boolean }>();
+const props = defineProps<{
+  spec: RequestSpec;
+  loading: boolean;
+  dirty: boolean;
+  /** Connection state for WebSocket and SSE requests. */
+  connection: ConnectionStatus;
+}>();
 const emit = defineEmits<{ send: []; cancel: []; save: []; code: [] }>();
 const dialogs = useDialogsStore();
 const toasts = useToastsStore();
 
 const urlInput = ref<InstanceType<typeof VariableInput>>();
+
+const realtime = computed(() => props.spec.mode !== "http");
+const connected = computed(() => props.connection === "open" || props.connection === "connecting");
+
+/** One select covers HTTP methods and the real-time modes. */
+const protocol = computed({
+  get: () => (props.spec.mode === "http" ? props.spec.method : props.spec.mode),
+  set: (value: string) => {
+    if (value === "websocket" || value === "sse") {
+      props.spec.mode = value;
+    } else {
+      props.spec.mode = "http";
+      props.spec.method = value as HttpMethod;
+    }
+  },
+});
+
+const placeholder = computed(() =>
+  props.spec.mode === "websocket"
+    ? "wss://contoh.com/socket atau {{ws_url}}"
+    : "https://api.contoh.com/v1/users atau {{base_url}}/users",
+);
 
 function onUrl(url: string) {
   props.spec.url = url;
@@ -57,14 +87,18 @@ defineExpose({ focus: () => urlInput.value?.focus() });
       class="flex h-9 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border border-line bg-bg focus-within:border-accent"
     >
       <select
-        v-model="spec.method"
-        aria-label="Method"
+        v-model="protocol"
+        aria-label="Method atau protokol"
         class="w-[92px] shrink-0 cursor-pointer border-r border-line bg-transparent px-2.5 font-mono text-xs font-bold outline-none max-sm:w-[76px]"
-        :class="methodColor(spec.method)"
+        :class="specColor(spec)"
       >
-        <option v-for="method in METHODS" :key="method" :value="method" class="text-fg">
-          {{ method }}
-        </option>
+        <optgroup label="HTTP" class="text-fg">
+          <option v-for="method in METHODS" :key="method" :value="method">{{ method }}</option>
+        </optgroup>
+        <optgroup label="Real-time" class="text-fg">
+          <option value="websocket">WS</option>
+          <option value="sse">SSE</option>
+        </optgroup>
       </select>
       <VariableInput
         ref="urlInput"
@@ -72,14 +106,26 @@ defineExpose({ focus: () => urlInput.value?.focus() });
         :model-value="spec.url"
         label="URL"
         size="md"
-        placeholder="https://api.contoh.com/v1/users atau {{base_url}}/users"
+        :placeholder="placeholder"
         @update:model-value="onUrl"
         @enter="emit('send')"
         @paste="onPaste"
       />
     </div>
     <AppButton
-      v-if="loading"
+      v-if="realtime"
+      :variant="connected ? 'danger' : 'primary'"
+      class="!h-9 w-[104px] max-sm:w-20"
+      @click="emit('send')"
+    >
+      <span
+        v-if="connection === 'connecting'"
+        class="size-3 animate-spin rounded-full border-2 border-current border-r-transparent"
+      />
+      {{ connected ? "Putuskan" : "Hubungkan" }}
+    </AppButton>
+    <AppButton
+      v-else-if="loading"
       variant="danger"
       class="!h-9 w-[88px] max-sm:w-16"
       @click="emit('cancel')"
@@ -96,6 +142,7 @@ defineExpose({ focus: () => urlInput.value?.focus() });
       Kirim
     </AppButton>
     <AppButton
+      v-if="spec.mode !== 'websocket'"
       icon="code"
       class="!h-9 !w-9 !px-0"
       aria-label="Lihat kode"

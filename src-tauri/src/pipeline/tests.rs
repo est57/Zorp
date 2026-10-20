@@ -48,6 +48,7 @@ fn spec(url: String, scripts: Scripts) -> RequestSpec {
         body: Body::None,
         auth: Auth::None,
         settings: RequestSettings::default(),
+        mode: Default::default(),
         scripts,
     }
 }
