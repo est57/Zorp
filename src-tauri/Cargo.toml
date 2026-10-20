@@ -1,6 +1,6 @@
 [package]
 name = "zorp"
-version = "0.3.1"
+version = "0.4.0"
 description = "Desktop API client"
 license = "MIT"
 authors = ["Zorp"]
