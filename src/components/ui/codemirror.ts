@@ -29,6 +29,26 @@ const theme = EditorView.theme({
   },
   ".cm-panels": { backgroundColor: "var(--surface-2)", color: "var(--fg)" },
   ".cm-searchMatch": { backgroundColor: "var(--accent-soft)" },
+  // Autocomplete and lint tooltips default to a light palette; use the app tokens in both themes.
+  ".cm-tooltip": {
+    backgroundColor: "var(--surface)",
+    color: "var(--fg)",
+    border: "1px solid var(--border)",
+    borderRadius: "6px",
+    boxShadow: "var(--shadow-float)",
+  },
+  ".cm-tooltip-autocomplete ul li": { padding: "2px 8px" },
+  ".cm-tooltip-autocomplete ul li[aria-selected]": {
+    backgroundColor: "var(--accent-soft)",
+    color: "var(--fg)",
+  },
+  ".cm-completionDetail": { color: "var(--fg-subtle)" },
+  ".cm-completionMatchedText": {
+    color: "var(--accent)",
+    textDecoration: "none",
+    fontWeight: "600",
+  },
+  ".cm-diagnostic": { borderLeftColor: "var(--danger)" },
 });
 
 export const baseExtensions = [
