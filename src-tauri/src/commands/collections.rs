@@ -1,12 +1,13 @@
 use tauri::State;
 use uuid::Uuid;
 
-use crate::db::{collections, examples, folders, requests};
+use crate::db::{collections, examples, folders, node_settings, requests};
 use crate::error::{AppError, AppResult};
 use crate::models::collection::{
     Collection, CollectionTree, Folder, MoveTarget, NodeKind, SavedRequest,
 };
 use crate::models::request::{Auth, RequestSpec};
+use crate::models::script::Scripts;
 use crate::state::AppState;
 
 #[tauri::command]
@@ -95,4 +96,33 @@ pub fn set_node_auth(
     auth: Auth,
 ) -> AppResult<()> {
     collections::set_auth(&*state.db()?, kind, id, &auth)
+}
+
+/// Saves the scripts and docs a collection or folder applies to everything inside it.
+#[tauri::command]
+pub fn set_node_settings(
+    state: State<'_, AppState>,
+    kind: NodeKind,
+    id: Uuid,
+    scripts: Scripts,
+    docs: String,
+) -> AppResult<()> {
+    node_settings::set(&*state.db()?, kind, id, &scripts, &docs)
+}
+
+#[tauri::command]
+pub fn get_collection_variables(
+    state: State<'_, AppState>,
+    id: Uuid,
+) -> AppResult<Vec<(String, String)>> {
+    collections::variables(&*state.db()?, id)
+}
+
+#[tauri::command]
+pub fn set_collection_variables(
+    state: State<'_, AppState>,
+    id: Uuid,
+    variables: Vec<(String, String)>,
+) -> AppResult<()> {
+    node_settings::set_variables(&*state.db()?, id, variables)
 }

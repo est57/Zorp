@@ -25,9 +25,9 @@ const menu = (c: Collection): MenuItem[] => [
     run: () => (dialogs.runnerTarget = { collectionId: c.id, folderId: null, name: c.name }),
   },
   {
-    label: "Atur auth",
-    icon: "lock",
-    run: () => (dialogs.authTarget = { kind: "collection", id: c.id }),
+    label: "Pengaturan",
+    icon: "settings",
+    run: () => (dialogs.nodeTarget = { kind: "collection", id: c.id }),
   },
   { label: "Ekspor ke Postman", icon: "download", run: () => exporter.collectionToPostman(c) },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("collection", c.id, c.name) },
@@ -53,6 +53,7 @@ const menu = (c: Collection): MenuItem[] => [
         :expanded="collections.expanded.has(c.id)"
         :menu="menu(c)"
         :warning="warningFor(c.id)"
+        :badge="c.scripts.preRequest.trim() || c.scripts.test.trim() ? 'JS' : undefined"
         zones="inside"
         class="font-medium"
         @activate="collections.toggle(c.id)"

@@ -14,6 +14,8 @@ pub struct RequestContext {
     pub folder_id: Option<Uuid>,
     pub environment: Vec<(String, String)>,
     pub collection: Vec<(String, String)>,
+    /// Values of the current runner iteration; they override the environment.
+    pub data: Vec<(String, String)>,
     pub has_environment: bool,
 }
 
@@ -47,17 +49,28 @@ impl RequestContext {
             folder_id,
             environment,
             collection,
+            data: Vec::new(),
             has_environment,
         })
     }
 
-    /// Collection values, overridden by the environment, overridden by script locals (Postman precedence).
+    /// Reloads values from storage after a script changed them, keeping the iteration data.
+    pub fn reload(&mut self, state: &AppState) -> AppResult<()> {
+        let data = std::mem::take(&mut self.data);
+        *self = Self::for_location(state, self.collection_id, self.folder_id)?;
+        self.data = data;
+        Ok(())
+    }
+
+    /// Collection values, overridden by the environment, then iteration data, then script
+    /// locals (Postman precedence).
     pub fn variables(&self, locals: &HashMap<String, String>) -> Variables {
         let locals: Vec<(String, String)> =
             locals.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
         Variables::from_layers(vec![
             self.collection.clone(),
             self.environment.clone(),
+            self.data.clone(),
             locals,
         ])
     }
@@ -65,6 +78,7 @@ impl RequestContext {
     pub fn variable_map(&self, locals: &HashMap<String, String>) -> HashMap<String, String> {
         let mut map: HashMap<String, String> = self.collection.iter().cloned().collect();
         map.extend(self.environment.iter().cloned());
+        map.extend(self.data.iter().cloned());
         map.extend(locals.clone());
         map
     }

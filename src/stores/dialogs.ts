@@ -23,8 +23,8 @@ export const useDialogsStore = defineStore("dialogs", () => {
   const current = shallowRef<DialogRequest | null>(null);
   /** Tab waiting for the user to choose where to save it. */
   const saveTabId = ref<string | null>(null);
-  /** Collection or folder whose auth is being edited. */
-  const authTarget = ref<{ kind: "collection" | "folder"; id: string } | null>(null);
+  /** Collection or folder whose settings (auth, scripts, variables, docs) are open. */
+  const nodeTarget = ref<{ kind: "collection" | "folder"; id: string } | null>(null);
   /** Tab whose code snippet is shown. */
   const snippetTabId = ref<string | null>(null);
   const curlImportOpen = ref(false);
@@ -59,7 +59,7 @@ export const useDialogsStore = defineStore("dialogs", () => {
   return {
     current,
     saveTabId,
-    authTarget,
+    nodeTarget,
     snippetTabId,
     curlImportOpen,
     openApiOpen,

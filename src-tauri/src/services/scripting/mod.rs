@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
-use rquickjs::{Context, Runtime};
+use rquickjs::{Context, Function, Runtime};
 use serde::{Deserialize, Serialize};
 
 use crate::error::{AppError, AppResult};
@@ -18,6 +20,8 @@ const SOURCE: &str = concat!(
     include_str!("expect.js"),
     "\n",
     include_str!("prelude.js"),
+    "\n",
+    include_str!("send_request.js"),
     "\n",
     include_str!("epilogue.js")
 );
@@ -78,6 +82,24 @@ pub struct ScriptOutput {
     pub request: ScriptRequest,
 }
 
+/// A request made by a script through `pm.sendRequest`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct HostRequest {
+    pub method: String,
+    pub url: String,
+    pub headers: Vec<(String, String)>,
+    pub body: Option<String>,
+}
+
+/// Network access offered to scripts. Implemented by the pipeline; scripts never touch
+/// the network themselves.
+pub trait ScriptHost: Send + Sync {
+    fn send(&self, request: HostRequest) -> Result<ScriptResponse, String>;
+}
+
+/// Calls allowed per script run, so a loop cannot flood a server.
+const MAX_HOST_CALLS: u32 = 20;
+
 impl ScriptOutput {
     pub fn changes_variables(&self) -> bool {
         !(self.env.is_empty()
@@ -87,13 +109,34 @@ impl ScriptOutput {
     }
 }
 
-/// Runs a user script in an isolated QuickJS runtime with time, memory and stack limits.
+/// Runs a user script without network access.
+#[cfg(test)]
 pub fn run(input: &ScriptInput) -> AppResult<ScriptOutput> {
+    run_with_host(input, None)
+}
+
+/// Runs a user script in an isolated QuickJS runtime with time, memory and stack limits.
+/// Time spent waiting for `pm.sendRequest` does not count toward the time limit.
+pub fn run_with_host(
+    input: &ScriptInput,
+    host: Option<Arc<dyn ScriptHost>>,
+) -> AppResult<ScriptOutput> {
     let runtime = Runtime::new().map_err(|e| AppError::Internal(e.to_string()))?;
     runtime.set_memory_limit(MEMORY_LIMIT);
     runtime.set_max_stack_size(STACK_LIMIT);
-    let deadline = Instant::now() + TIME_LIMIT;
-    runtime.set_interrupt_handler(Some(Box::new(move || Instant::now() > deadline)));
+    let started = Instant::now();
+    let waited = Arc::new(AtomicU64::new(0));
+    let over = {
+        let waited = waited.clone();
+        move || {
+            started
+                .elapsed()
+                .saturating_sub(Duration::from_millis(waited.load(Ordering::Relaxed)))
+                > TIME_LIMIT
+        }
+    };
+    let check = over.clone();
+    runtime.set_interrupt_handler(Some(Box::new(check)));
     let context = Context::full(&runtime).map_err(|e| AppError::Internal(e.to_string()))?;
     let input_json = serde_json::to_string(input)?;
 
@@ -101,6 +144,31 @@ pub fn run(input: &ScriptInput) -> AppResult<ScriptOutput> {
         ctx.globals()
             .set("__input_json", input_json)
             .map_err(|e| e.to_string())?;
+        if let Some(host) = host {
+            let calls = AtomicU32::new(0);
+            let send = Function::new(ctx.clone(), move |json: String| -> String {
+                let reply = if calls.fetch_add(1, Ordering::Relaxed) >= MAX_HOST_CALLS {
+                    Err(format!(
+                        "pm.sendRequest dibatasi {MAX_HOST_CALLS} kali per script"
+                    ))
+                } else {
+                    let begin = Instant::now();
+                    let result = serde_json::from_str::<HostRequest>(&json)
+                        .map_err(|e| format!("Request tidak valid: {e}"))
+                        .and_then(|request| host.send(request));
+                    waited.fetch_add(begin.elapsed().as_millis() as u64, Ordering::Relaxed);
+                    result
+                };
+                match reply {
+                    Ok(response) => serde_json::json!({ "response": response }).to_string(),
+                    Err(error) => serde_json::json!({ "error": error }).to_string(),
+                }
+            })
+            .map_err(|e| e.to_string())?;
+            ctx.globals()
+                .set("__host_send", send)
+                .map_err(|e| e.to_string())?;
+        }
         ctx.eval::<String, _>(SOURCE).map_err(|_| {
             let exception = ctx.catch();
             exception
@@ -112,7 +180,7 @@ pub fn run(input: &ScriptInput) -> AppResult<ScriptOutput> {
 
     match output {
         Ok(json) => Ok(serde_json::from_str(&json)?),
-        Err(_) if Instant::now() > deadline => Err(AppError::Script(
+        Err(_) if over() => Err(AppError::Script(
             "Script melebihi batas waktu 5 detik".into(),
         )),
         Err(message) => Err(AppError::Script(message)),

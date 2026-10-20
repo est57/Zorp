@@ -62,9 +62,31 @@ export const examples = [
 
 export const tree: CollectionTree = {
   examples: examples.map(({ id, requestId, name, status }) => ({ id, requestId, name, status })),
-  collections: [{ id: "c1", name: "API Contoh", auth: null, sortOrder: 1 }],
+  collections: [
+    {
+      id: "c1",
+      name: "API Contoh",
+      auth: null,
+      sortOrder: 1,
+      scripts: {
+        preRequest:
+          '// Berlaku sebelum setiap request di koleksi ini.\npm.request.headers.upsert({ key: "X-App-Version", value: "2.4.0" });\n',
+        test: "",
+      },
+      docs: "# API Contoh\n\nKoleksi contoh untuk mode pratinjau.",
+    },
+  ],
   folders: [
-    { id: "f1", collectionId: "c1", parentId: null, name: "Users", auth: null, sortOrder: 1 },
+    {
+      id: "f1",
+      collectionId: "c1",
+      parentId: null,
+      name: "Users",
+      auth: null,
+      sortOrder: 1,
+      scripts: { preRequest: "", test: "" },
+      docs: "",
+    },
   ],
   requests: [
     {

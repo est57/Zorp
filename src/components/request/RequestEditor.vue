@@ -7,6 +7,7 @@ import { urlFromParams } from "@/utils/url";
 import AuthForm from "./AuthForm.vue";
 import BodyEditor from "./BodyEditor.vue";
 import DocsEditor from "./DocsEditor.vue";
+import ScriptChain from "./ScriptChain.vue";
 import ScriptEditor from "./ScriptEditor.vue";
 import SettingsPanel from "./SettingsPanel.vue";
 
@@ -72,8 +73,10 @@ function setParams(rows: RequestSpec["params"]) {
         inherit-label="Ikuti folder atau koleksi"
         :collection-id="collectionId"
       />
-      <ScriptEditor v-else-if="section === 'scripts'" :spec="spec" />
-      <DocsEditor v-else-if="section === 'docs'" :spec="spec" />
+      <ScriptEditor v-else-if="section === 'scripts'" :scripts="spec.scripts">
+        <ScriptChain :request-id="spec.id" />
+      </ScriptEditor>
+      <DocsEditor v-else-if="section === 'docs'" v-model="spec.docs" />
       <SettingsPanel v-else :spec="spec" />
     </div>
   </div>

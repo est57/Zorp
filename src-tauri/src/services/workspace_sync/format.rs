@@ -30,6 +30,10 @@ pub struct CollectionFile {
     pub auth: Option<Auth>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub variables: Vec<Pair>,
+    #[serde(default, skip_serializing_if = "is_empty_scripts")]
+    pub scripts: Scripts,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub docs: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,6 +43,10 @@ pub struct FolderFile {
     pub order: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub auth: Option<Auth>,
+    #[serde(default, skip_serializing_if = "is_empty_scripts")]
+    pub scripts: Scripts,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub docs: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

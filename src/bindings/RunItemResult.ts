@@ -2,7 +2,15 @@
 import type { HttpMethod } from "./HttpMethod";
 import type { TestResult } from "./TestResult";
 
-export type RunItemResult = { index: number, total: number, requestId: string, name: string, method: HttpMethod, status: number | null, durationMs: number | null, tests: Array<TestResult>, error: string | null, 
+export type RunItemResult = { index: number, total: number, 
+/**
+ * 1-based iteration, always 1 without data.
+ */
+iteration: number, 
+/**
+ * First value of the iteration's data row, to tell iterations apart.
+ */
+iterationLabel: string | null, requestId: string, name: string, method: HttpMethod, status: number | null, durationMs: number | null, tests: Array<TestResult>, error: string | null, 
 /**
  * No error and every test passed.
  */

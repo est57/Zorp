@@ -7,7 +7,7 @@ import CodeSnippetDialog from "@/components/request/CodeSnippetDialog.vue";
 import SaveRequestDialog from "@/components/request/SaveRequestDialog.vue";
 import CookieManagerDialog from "@/components/sidebar/CookieManagerDialog.vue";
 import ImportCurlDialog from "@/components/sidebar/ImportCurlDialog.vue";
-import NodeAuthDialog from "@/components/sidebar/NodeAuthDialog.vue";
+import NodeSettingsDialog from "@/components/sidebar/NodeSettingsDialog.vue";
 import OpenApiImportDialog from "@/components/sidebar/OpenApiImportDialog.vue";
 import DialogHost from "@/components/ui/DialogHost.vue";
 import ToastHost from "@/components/ui/ToastHost.vue";
@@ -117,7 +117,7 @@ onMounted(async () => {
     <StatusBar />
     <DialogHost />
     <SaveRequestDialog />
-    <NodeAuthDialog />
+    <NodeSettingsDialog />
     <CodeSnippetDialog />
     <ImportCurlDialog />
     <OpenApiImportDialog />

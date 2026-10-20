@@ -39,6 +39,11 @@ export function installMockBackend() {
               { method: "GET", name: "Finds Pets by status", group: "pet" },
             ],
           };
+        case "get_collection_variables":
+          return [["base_url", "https://api.contoh.id"]];
+        case "set_node_settings":
+        case "set_collection_variables":
+          return null;
         case "get_example":
           return examples.find((e) => e.id === a.id);
         case "save_example":
@@ -95,7 +100,24 @@ export function installMockBackend() {
             },
           ];
         case "run_collection":
-          return { total: 3, passed: 2, failed: 1, durationMs: 412, cancelled: false };
+          return {
+            total: 3,
+            iterations: 1,
+            passed: 2,
+            failed: 1,
+            durationMs: 412,
+            cancelled: false,
+          };
+        case "preview_run_data":
+          return {
+            columns: ["email", "outletId", "login_password"],
+            rows: [
+              ["leader.a@outlet.contoh.id", "242", "rahasia-1"],
+              ["leader.b@outlet.contoh.id", "118", "rahasia-2"],
+              ["staff.c@outlet.contoh.id", "305", "rahasia-3"],
+            ],
+            total: 3,
+          };
         case "cancel_run":
           return null;
         case "get_settings":

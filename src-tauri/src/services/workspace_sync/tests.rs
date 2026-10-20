@@ -42,6 +42,8 @@ fn request(name: &str, collection: Uuid, folder: Option<Uuid>, order: f64) -> Sa
 
 fn sample() -> Snapshot {
     let collection = Collection {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         name: "Users API".into(),
         auth: Some(Auth::Bearer {
@@ -50,6 +52,8 @@ fn sample() -> Snapshot {
         sort_order: 1.0,
     };
     let folder = Folder {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         collection_id: collection.id,
         parent_id: None,
@@ -58,6 +62,8 @@ fn sample() -> Snapshot {
         sort_order: 1.0,
     };
     let nested = Folder {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         collection_id: collection.id,
         parent_id: Some(folder.id),

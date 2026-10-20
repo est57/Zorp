@@ -2,6 +2,7 @@ use rusqlite::{Connection, OptionalExtension, params};
 use uuid::Uuid;
 
 use super::folders::folder_parent;
+use super::node_settings::scripts_from;
 use super::{ensure_changed, uuid_at, validate_name};
 use crate::error::AppResult;
 use crate::models::collection::{Collection, NodeKind};
@@ -13,7 +14,7 @@ pub(super) fn auth_from(json: Option<String>) -> Option<Auth> {
 
 pub fn list_collections(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Collection>> {
     let mut stmt = conn.prepare(
-        "SELECT id, name, auth_json, sort_order FROM collections
+        "SELECT id, name, auth_json, sort_order, scripts_json, docs FROM collections
          WHERE workspace_id = ?1 ORDER BY sort_order, name",
     )?;
     let rows = stmt.query_map([workspace_id.to_string()], |row| {
@@ -22,6 +23,8 @@ pub fn list_collections(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<
             name: row.get(1)?,
             auth: auth_from(row.get(2)?),
             sort_order: row.get(3)?,
+            scripts: scripts_from(row.get(4)?),
+            docs: row.get(5)?,
         })
     })?;
     Ok(rows.collect::<Result<_, _>>()?)
@@ -39,6 +42,8 @@ pub fn create_collection(
         |row| row.get(0),
     )?;
     let collection = Collection {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         name,
         auth: None,

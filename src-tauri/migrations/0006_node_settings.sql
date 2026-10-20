@@ -1,0 +1,4 @@
+ALTER TABLE collections ADD COLUMN scripts_json TEXT;
+ALTER TABLE collections ADD COLUMN docs TEXT NOT NULL DEFAULT '';
+ALTER TABLE folders ADD COLUMN scripts_json TEXT;
+ALTER TABLE folders ADD COLUMN docs TEXT NOT NULL DEFAULT '';

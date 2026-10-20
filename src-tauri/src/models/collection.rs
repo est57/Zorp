@@ -4,6 +4,7 @@ use uuid::Uuid;
 
 use super::example::ExampleSummary;
 use super::request::{Auth, RequestSpec};
+use super::script::Scripts;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -13,6 +14,11 @@ pub struct Collection {
     pub name: String,
     pub auth: Option<Auth>,
     pub sort_order: f64,
+    /// Run before and after every request inside, ahead of folder and request scripts.
+    #[serde(default)]
+    pub scripts: Scripts,
+    #[serde(default)]
+    pub docs: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -25,6 +31,10 @@ pub struct Folder {
     pub name: String,
     pub auth: Option<Auth>,
     pub sort_order: f64,
+    #[serde(default)]
+    pub scripts: Scripts,
+    #[serde(default)]
+    pub docs: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

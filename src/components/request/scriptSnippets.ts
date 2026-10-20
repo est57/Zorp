@@ -13,6 +13,21 @@ export const PRE_REQUEST_SNIPPETS: ScriptSnippet[] = [
     label: "Variabel untuk request ini",
     code: 'pm.variables.set("timestamp", String(Date.now()));',
   },
+  {
+    label: "Login otomatis (pm.sendRequest)",
+    code: [
+      "// Login sekali, lalu pakai ulang token sampai kedaluwarsa.",
+      'if (Date.now() > Number(pm.collectionVariables.get("tokenExp") || 0)) {',
+      "  const res = pm.sendRequest({",
+      '    url: "{{baseUrl}}/login",',
+      '    method: "POST",',
+      '    body: { email: "{{email}}", password: "{{login_password}}" },',
+      "  });",
+      '  pm.collectionVariables.set("token", res.json().token);',
+      '  pm.collectionVariables.set("tokenExp", Date.now() + 50 * 60 * 1000);',
+      "}",
+    ].join("\n"),
+  },
 ];
 
 export const TEST_SNIPPETS: ScriptSnippet[] = [

@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import type { RequestSpec } from "@/bindings/RequestSpec";
 import CodeEditor from "@/components/ui/CodeEditor.vue";
 import MarkdownView from "@/components/ui/MarkdownView.vue";
 import { useMediaQuery } from "@/composables/useMediaQuery";
 
-const props = defineProps<{ spec: RequestSpec }>();
+const model = defineModel<string | undefined>({ required: true });
+withDefaults(defineProps<{ hint?: string }>(), {
+  hint: "Catatan Markdown untuk request ini, ikut tersimpan di koleksi.",
+});
 
 const wide = useMediaQuery("(min-width: 1100px)");
-const view = ref<"edit" | "preview">(props.spec.docs ? "preview" : "edit");
+const view = ref<"edit" | "preview">(model.value ? "preview" : "edit");
 const docs = computed({
-  get: () => props.spec.docs ?? "",
-  set: (value: string) => (props.spec.docs = value),
+  get: () => model.value ?? "",
+  set: (value: string) => (model.value = value),
 });
 
 const segment = (active: boolean) =>

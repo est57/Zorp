@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::*;
 
 fn input(kind: ScriptKind, script: &str) -> ScriptInput {
@@ -119,4 +121,73 @@ fn sandbox_has_no_host_access() {
 fn infinite_loops_are_stopped() {
     let err = run(&input(ScriptKind::Test, "while (true) {}")).unwrap_err();
     assert!(matches!(err, AppError::Script(ref m) if m.contains("batas waktu")));
+}
+
+/// Answers every request with its own method, URL, headers and body, for inspection.
+struct EchoHost;
+
+impl ScriptHost for EchoHost {
+    fn send(&self, request: HostRequest) -> Result<ScriptResponse, String> {
+        if request.url.contains("down") {
+            return Err("Tidak bisa terhubung ke server".into());
+        }
+        let body = serde_json::json!({
+            "method": request.method, "url": request.url, "headers": request.headers, "body": request.body
+        });
+        Ok(ScriptResponse {
+            code: 200,
+            status: "OK".into(),
+            headers: vec![],
+            body: body.to_string(),
+            response_time: 5,
+        })
+    }
+}
+
+#[test]
+fn send_request_uses_the_host_and_fills_variables() {
+    let script = r#"
+        const res = pm.sendRequest({
+            url: "{{base}}/login",
+            method: "post",
+            header: [{ key: "X-Trace", value: "{{base}}" }],
+            body: { mode: "raw", raw: JSON.stringify({ user: "rani" }), options: { raw: { language: "json" } } },
+        });
+        const echo = res.json();
+        pm.environment.set("method", echo.method);
+        pm.environment.set("url", echo.url);
+        pm.environment.set("type", echo.headers.find(([k]) => k === "Content-Type")[1]);
+        pm.sendRequest("https://down.test", (err, r) => pm.environment.set("failed", String(err.message) + "|" + r));
+    "#;
+    let out = run_with_host(
+        &input(ScriptKind::PreRequest, script),
+        Some(Arc::new(EchoHost)),
+    )
+    .unwrap();
+    assert_eq!(out.error, None, "{:?}", out.logs);
+    assert_eq!(out.env["method"], "POST");
+    assert_eq!(out.env["url"], "https://api.test/login");
+    assert_eq!(out.env["type"], "application/json");
+    assert_eq!(out.env["failed"], "Tidak bisa terhubung ke server|null");
+    assert_eq!(
+        out.logs[0].message,
+        "pm.sendRequest POST https://api.test/login"
+    );
+}
+
+#[test]
+fn send_request_is_limited_and_unavailable_without_host() {
+    let looped = "for (let i = 0; i < 25; i++) pm.sendRequest('https://api.test/x');";
+    let out = run_with_host(
+        &input(ScriptKind::PreRequest, looped),
+        Some(Arc::new(EchoHost)),
+    )
+    .unwrap();
+    assert!(out.error.unwrap().contains("dibatasi 20 kali"));
+    let out = run(&input(
+        ScriptKind::PreRequest,
+        "pm.sendRequest('https://api.test')",
+    ))
+    .unwrap();
+    assert!(out.error.unwrap().contains("tidak tersedia"));
 }

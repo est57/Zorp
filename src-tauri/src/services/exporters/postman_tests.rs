@@ -47,6 +47,8 @@ fn spec(name: &str, method: HttpMethod, body: Body, auth: Auth) -> RequestSpec {
 #[test]
 fn exported_collection_imports_back_with_the_same_content() {
     let collection = Collection {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         name: "Shop".into(),
         auth: Some(Auth::Bearer {
@@ -55,6 +57,8 @@ fn exported_collection_imports_back_with_the_same_content() {
         sort_order: 1.0,
     };
     let folder = Folder {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         collection_id: collection.id,
         parent_id: None,

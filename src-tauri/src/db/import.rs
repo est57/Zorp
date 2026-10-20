@@ -1,7 +1,7 @@
 use rusqlite::{Connection, params};
 use uuid::Uuid;
 
-use super::{collections, folders, requests};
+use super::{collections, folders, node_settings, requests};
 use crate::error::AppResult;
 use crate::models::collection::NodeKind;
 use crate::models::import::ImportReport;
@@ -19,9 +19,11 @@ fn insert_nodes(
             ImportedNode::Folder {
                 name,
                 auth,
+                scripts,
                 children,
             } => {
                 let folder = folders::create_folder(conn, collection_id, parent, &name)?;
+                node_settings::set(conn, NodeKind::Folder, folder.id, &scripts, "")?;
                 if let Some(auth) = auth {
                     collections::set_auth(conn, NodeKind::Folder, folder.id, &auth)?;
                 }
@@ -48,6 +50,13 @@ pub fn save(
     if let Some(auth) = &imported.auth {
         collections::set_auth(&tx, NodeKind::Collection, collection.id, auth)?;
     }
+    node_settings::set(
+        &tx,
+        NodeKind::Collection,
+        collection.id,
+        &imported.scripts,
+        "",
+    )?;
     if !imported.variables.is_empty() {
         tx.execute(
             "UPDATE collections SET variables_json = ?1 WHERE id = ?2",

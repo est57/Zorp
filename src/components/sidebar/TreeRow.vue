@@ -30,8 +30,10 @@ const props = withDefaults(
     menu: MenuItem[];
     /** Shown as a warning marker, for example credentials typed in directly. */
     warning?: string;
+    /** Small tag after the label, for example JS when scripts are attached. */
+    badge?: string;
   }>(),
-  { selected: false, expanded: undefined, draggable: false, warning: undefined },
+  { selected: false, expanded: undefined, draggable: false, warning: undefined, badge: undefined },
 );
 const emit = defineEmits<{ activate: []; dragstart: []; drop: [zone: DropZone] }>();
 
@@ -84,6 +86,12 @@ function onDrop(event: DragEvent) {
       >
         <slot name="lead" />
         <span class="truncate">{{ label }}</span>
+        <span
+          v-if="badge"
+          class="shrink-0 rounded-sm bg-accent-soft px-1 font-mono text-[9px] leading-[14px] font-semibold text-accent"
+          :title="badge === 'JS' ? 'Punya script' : undefined"
+          >{{ badge }}</span
+        >
         <span v-if="warning" class="ml-auto flex shrink-0 text-warning" :title="warning">
           <AppIcon name="alert" :size="12" />
           <span class="sr-only">{{ warning }}</span>

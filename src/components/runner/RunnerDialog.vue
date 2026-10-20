@@ -2,7 +2,8 @@
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import type { RunItemResult } from "@/bindings/RunItemResult";
 import type { RunSummary } from "@/bindings/RunSummary";
-import { cancelRun, onRunnerItem, runCollection } from "@/api/runner";
+import { save as saveFile } from "@tauri-apps/plugin-dialog";
+import { cancelRun, onRunnerItem, runCollection, saveRunReport } from "@/api/runner";
 import AppButton from "@/components/ui/AppButton.vue";
 import ModalDialog from "@/components/ui/ModalDialog.vue";
 import { checkboxClass, inputClass } from "@/components/ui/styles";
@@ -11,7 +12,9 @@ import { useEnvironmentsStore } from "@/stores/environments";
 import { useToastsStore } from "@/stores/toasts";
 import { formatDuration } from "@/utils/format";
 import { newId } from "@/utils/request";
-import RunResultRow from "./RunResultRow.vue";
+import { reportHtml, reportJson } from "@/utils/runReport";
+import RunDataPicker from "./RunDataPicker.vue";
+import RunResults from "./RunResults.vue";
 
 const dialogs = useDialogsStore();
 const toasts = useToastsStore();
@@ -19,6 +22,8 @@ const envs = useEnvironmentsStore();
 
 const delayMs = ref(0);
 const stopOnFailure = ref(false);
+const dataPath = ref<string | null>(null);
+const iterations = ref(1);
 const runId = ref<string | null>(null);
 const items = ref<RunItemResult[]>([]);
 const summary = ref<RunSummary | null>(null);
@@ -45,7 +50,30 @@ watch(target, () => {
   runId.value = null;
   items.value = [];
   summary.value = null;
+  dataPath.value = null;
+  iterations.value = 1;
 });
+
+async function exportReport() {
+  if (!summary.value || !target.value) return;
+  const path = await saveFile({
+    defaultPath: `laporan-${target.value.name.replace(/[^\w-]+/g, "-").toLowerCase()}.html`,
+    filters: [
+      { name: "Laporan HTML", extensions: ["html"] },
+      { name: "Laporan JSON", extensions: ["json"] },
+    ],
+  });
+  if (!path) return;
+  const report = {
+    name: target.value.name,
+    finishedAt: new Date().toLocaleString("id-ID"),
+    summary: summary.value,
+    items: items.value,
+  };
+  const contents = path.toLowerCase().endsWith(".json") ? reportJson(report) : reportHtml(report);
+  const ok = await toasts.guard(() => saveRunReport(path, contents).then(() => true));
+  if (ok) toasts.push("Laporan disimpan", "success");
+}
 
 async function start() {
   const t = target.value;
@@ -57,6 +85,7 @@ async function start() {
   const options = {
     delayMs: Math.max(0, Math.round(delayMs.value) || 0),
     stopOnFailure: stopOnFailure.value,
+    dataPath: dataPath.value,
   };
   const result = await toasts.guard(() => runCollection(id, t.collectionId, t.folderId, options));
   if (runId.value !== id) return;
@@ -97,6 +126,12 @@ async function start() {
           Berhenti saat ada yang gagal
         </label>
       </div>
+      <RunDataPicker
+        v-if="!summary && !running"
+        v-model="dataPath"
+        :disabled="running"
+        @rows="(n) => (iterations = n)"
+      />
 
       <div
         v-if="runId"
@@ -114,21 +149,24 @@ async function start() {
         <span :class="summary.failed ? 'text-danger' : 'text-muted'"
           >{{ summary.failed }} gagal</span
         >
-        dari {{ summary.total }} request dalam {{ formatDuration(summary.durationMs)
+        dari {{ summary.total }} request<span v-if="summary.iterations > 1">
+          dalam {{ summary.iterations }} iterasi</span
+        >, {{ formatDuration(summary.durationMs)
         }}<span v-if="summary.cancelled">, dibatalkan</span>.
       </p>
-      <ul v-if="items.length" class="max-h-[40vh] overflow-y-auto">
-        <RunResultRow v-for="item in items" :key="`${item.index}-${item.requestId}`" :item="item" />
-      </ul>
+      <RunResults v-if="items.length" :items="items" :grouped="Boolean(dataPath)" />
 
       <div class="flex justify-end gap-2">
         <AppButton v-if="running" variant="danger" @click="runId && cancelRun(runId)"
           >Batalkan</AppButton
         >
         <template v-else>
+          <AppButton v-if="summary" icon="download" class="mr-auto" @click="exportReport"
+            >Ekspor laporan</AppButton
+          >
           <AppButton @click="open = false">Tutup</AppButton>
           <AppButton variant="primary" @click="start">{{
-            summary ? "Jalankan lagi" : "Mulai"
+            summary ? "Jalankan lagi" : dataPath ? `Mulai ${iterations} iterasi` : "Mulai"
           }}</AppButton>
         </template>
       </div>

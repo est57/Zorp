@@ -4,4 +4,8 @@ export type RunnerOptions = {
 /**
  * Pause between requests.
  */
-delayMs: number, stopOnFailure: boolean, };
+delayMs: number, stopOnFailure: boolean, 
+/**
+ * CSV or JSON file with one iteration per row; every column becomes a variable.
+ */
+dataPath: string | null, };

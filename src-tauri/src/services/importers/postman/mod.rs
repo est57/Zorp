@@ -100,6 +100,7 @@ fn parse_items(
             nodes.push(ImportedNode::Folder {
                 name,
                 auth,
+                scripts: parse_scripts(item.get("event")),
                 children,
             });
         }
@@ -134,6 +135,7 @@ pub fn parse(json: &str) -> AppResult<ImportedCollection> {
         .collect();
     let items = parse_items(root.get("item"), 0, &mut warnings)?;
     Ok(ImportedCollection {
+        scripts: parse_scripts(root.get("event")),
         name,
         auth,
         variables,

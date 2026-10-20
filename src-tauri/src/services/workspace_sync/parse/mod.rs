@@ -88,6 +88,8 @@ impl Reader<'_> {
         }
         self.snapshot.collections.push(CollectionEntry {
             collection: Collection {
+                scripts: file.scripts,
+                docs: file.docs,
                 id: file.id,
                 name: file.name,
                 auth: file.auth,
@@ -140,6 +142,8 @@ impl Reader<'_> {
             };
             if self.claim(file.id, &file.name, &path) {
                 self.snapshot.folders.push(Folder {
+                    scripts: file.scripts,
+                    docs: file.docs,
                     id: file.id,
                     collection_id: collection,
                     parent_id: parent,

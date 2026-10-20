@@ -23,8 +23,8 @@
 - **Workspace**: beberapa workspace terpisah, masing-masing dengan koleksi, environment, riwayat, cookie, dan pengaturan jaringan sendiri. Workspace bisa disimpan sebagai folder file YAML agar dapat dibagikan lewat Git.
 - **Environment**: variabel `{{nama}}` dengan penanda variabel yang tidak ditemukan. Nilai rahasia disimpan di keychain sistem.
 - **Auth**: Bearer, Basic, API key, Digest, JWT Bearer (HS/RS/ES), AWS Signature v4, OAuth 1.0, dan OAuth 2.0 (Authorization Code dengan PKCE, Client Credentials, refresh otomatis). Auth bisa diwariskan dari folder atau koleksi. Kolom kredensial disembunyikan secara default dan ditandai jika nilainya ditulis langsung.
-- **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya).
-- **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes.
+- **Script**: pre-request dan test script dengan API mirip Postman (`pm.environment`, `pm.test`, `pm.expect`, dan lainnya), di level request, folder, dan koleksi.
+- **Collection runner**: menjalankan seluruh koleksi atau folder secara berurutan beserta ringkasan tes, sekali atau berulang dengan data dari file CSV atau JSON, lalu mengekspor laporannya ke HTML atau JSON.
 - **Peringatan kredensial**: request yang berisi token, password, atau API key yang ditulis langsung ditandai di sidebar dan status bar, agar dipindahkan ke variabel rahasia sebelum dibagikan.
 - **Impor dan ekspor**: koleksi dan environment Postman v2.1 (dua arah), spesifikasi OpenAPI 3.x dan Swagger 2.0 (file atau URL, JSON atau YAML), perintah cURL, serta code snippet untuk cURL, fetch, axios, Python, dan Go. Nilai variabel rahasia tidak pernah ikut diekspor.
 - **Jaringan**: cookie jar per workspace, rincian waktu (DNS, koneksi, tunggu server, unduh), proxy HTTP/HTTPS/SOCKS5, sertifikat CA kustom, dan sertifikat klien (mTLS).
@@ -74,6 +74,19 @@ Klik ikon unduh di header **Koleksi**, lalu pilih **OpenAPI / Swagger**. Pilih f
 
 - Setelah request yang tersimpan dikirim, klik **Simpan sebagai contoh** di header Response. Contoh muncul di bawah request di sidebar dan dibuka sebagai tab hanya-baca. Hanya respons teks hingga 1 MB yang bisa disimpan, dan header `Set-Cookie`, `Cookie`, serta `Authorization` dibuang.
 - Tab **Docs** pada request menerima Markdown, lengkap dengan pratinjau. HTML mentah tidak dirender, dan link dibuka di browser sistem.
+
+### Pengaturan koleksi dan folder
+
+Klik kanan koleksi atau folder, lalu pilih **Pengaturan**. Dialog ini berisi tab Auth, Script, Variabel (khusus koleksi), dan Docs.
+
+- Script bisa mengirim request sendiri dengan `pm.sendRequest(request, callback)`, misalnya untuk login otomatis di script koleksi lalu menyimpan token ke variabel koleksi. Respons juga dikembalikan langsung, dan variabel `{{nama}}` di URL, header, dan body diisi otomatis.
+- Script koleksi dan folder berjalan untuk setiap request di dalamnya. Urutannya: koleksi, lalu folder dari luar ke dalam, lalu request. Test script mengikuti urutan yang sama. Tab **Script** di request menampilkan urutan ini.
+- Koleksi atau folder yang punya script ditandai **JS** di sidebar.
+- Variabel koleksi ikut tersimpan di folder workspace, jadi jangan isi dengan nilai rahasia.
+
+### Runner dengan data
+
+Pada dialog **Jalankan**, pilih **File CSV / JSON** di bagian Data iterasi. File CSV memakai baris pertama sebagai nama kolom; file JSON berupa array objek. Setiap baris menjadi satu iterasi, dan setiap kolom menjadi variabel yang menimpa environment selama iterasi itu, misalnya `{{email}}`. Hasil dikelompokkan per iterasi dan bisa diekspor lewat **Ekspor laporan**. File data hanya dibaca saat runner berjalan dan tidak disimpan ke workspace.
 
 ### Jenis auth
 
@@ -183,7 +196,7 @@ src-tauri/              Backend Rust
 
 - Semua request jaringan dijalankan oleh backend Rust, bukan oleh webview.
 - Nilai rahasia (variabel secret, token OAuth, password proxy) disimpan di keychain sistem dan tidak pernah ditulis ke database.
-- Script berjalan di runtime QuickJS yang terisolasi, tanpa akses file, jaringan, atau sistem, dengan batas waktu 5 detik dan memori 64 MB.
+- Script berjalan di runtime QuickJS yang terisolasi, tanpa akses file atau sistem, dengan batas waktu 5 detik dan memori 64 MB. Satu-satunya akses jaringan adalah `pm.sendRequest`, yang dikirim oleh backend Rust (maksimal 20 request per script, 30 detik per request, respons hingga 5 MB) dan selalu tercatat di Konsol. Periksa script koleksi dari sumber yang tidak Anda kenal sebelum menjalankannya, karena script dapat mengirim nilai variabel ke server lain.
 - Webview memakai Content Security Policy yang ketat dan permission Tauri yang minimal.
 - Folder workspace tidak pernah berisi nilai variabel rahasia. File yang dibaca dari folder dibatasi ukurannya, symbolic link dilewati, dan file yang tidak valid menjeda sinkron tanpa menimpa apa pun.
 - Dokumentasi Markdown dirender tanpa HTML mentah, dan hanya link `http`/`https` yang bisa dibuka.

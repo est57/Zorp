@@ -1,6 +1,7 @@
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { RunnerEvent } from "@/bindings/RunnerEvent";
 import type { RunnerOptions } from "@/bindings/RunnerOptions";
+import type { RunDataPreview } from "@/bindings/RunDataPreview";
 import type { RunSummary } from "@/bindings/RunSummary";
 import { invoke, isTauri } from "./invoke";
 
@@ -17,3 +18,9 @@ export async function onRunnerItem(handler: (event: RunnerEvent) => void): Promi
   if (!isTauri()) return () => {};
   return listen<RunnerEvent>("runner://item", (event) => handler(event.payload));
 }
+
+export const previewRunData = (path: string) =>
+  invoke<RunDataPreview>("preview_run_data", { path });
+
+export const saveRunReport = (path: string, contents: string) =>
+  invoke<void>("save_run_report", { path, contents });

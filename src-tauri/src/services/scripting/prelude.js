@@ -1,4 +1,5 @@
-// Builds the `pm` API from __input and collects results in __out. No I/O is exposed.
+// Builds the `pm` API from __input and collects results in __out. The only I/O is
+// pm.sendRequest, which goes through the host function provided by the app.
 const __in = JSON.parse(globalThis.__input_json);
 const __out = {
   env: {},
@@ -128,11 +129,19 @@ const pm = {
       });
     }
   },
-  sendRequest() {
-    throw new Error("pm.sendRequest belum didukung di Zorp");
+  sendRequest(request, callback) {
+    if (typeof globalThis.__host_send !== "function")
+      throw new Error("pm.sendRequest tidak tersedia di sini");
+    const req = __normalizeRequest(request);
+    __out.logs.push({ level: "info", message: `pm.sendRequest ${req.method} ${req.url}` });
+    const reply = JSON.parse(globalThis.__host_send(JSON.stringify(req)));
+    const error = reply.error ? new Error(reply.error) : null;
+    const response = error ? null : __response(reply.response);
+    if (typeof callback === "function") callback(error, response);
+    else if (error) throw error;
+    return response;
   },
 };
-
 const __log =
   (level) =>
   (...args) =>

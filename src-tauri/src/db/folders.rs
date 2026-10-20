@@ -8,7 +8,8 @@ use crate::models::collection::{Folder, MoveTarget};
 
 pub fn list_folders(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Folder>> {
     let mut stmt = conn.prepare(
-        "SELECT f.id, f.collection_id, f.parent_id, f.name, f.auth_json, f.sort_order
+        "SELECT f.id, f.collection_id, f.parent_id, f.name, f.auth_json, f.sort_order,
+                f.scripts_json, f.docs
          FROM folders f JOIN collections c ON c.id = f.collection_id
          WHERE c.workspace_id = ?1 ORDER BY f.sort_order, f.name",
     )?;
@@ -20,6 +21,8 @@ pub fn list_folders(conn: &Connection, workspace_id: Uuid) -> AppResult<Vec<Fold
             name: row.get(3)?,
             auth: auth_from(row.get(4)?),
             sort_order: row.get(5)?,
+            scripts: super::node_settings::scripts_from(row.get(6)?),
+            docs: row.get(7)?,
         })
     })?;
     Ok(rows.collect::<Result<_, _>>()?)
@@ -39,6 +42,8 @@ pub fn create_folder(
         |row| row.get(0),
     )?;
     let folder = Folder {
+        scripts: Default::default(),
+        docs: String::new(),
         id: Uuid::now_v7(),
         collection_id,
         parent_id,

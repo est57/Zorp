@@ -73,10 +73,11 @@ async fn runs_items_and_stops_on_failure() {
     let seen = Mutex::new(Vec::new());
     let (_tx, rx) = oneshot::channel();
     let options = RunnerOptions {
+        data_path: None,
         delay_ms: 0,
         stop_on_failure: true,
     };
-    let summary = run_items(&state(), &items, &options, rx, |r| {
+    let summary = run_items(&state(), &items, &[], &options, rx, |r| {
         seen.lock().unwrap().push((r.name, r.passed))
     })
     .await;
@@ -100,18 +101,60 @@ async fn continues_after_failure_and_can_be_cancelled() {
     ];
     let (_tx, rx) = oneshot::channel();
     let options = RunnerOptions {
+        data_path: None,
         delay_ms: 0,
         stop_on_failure: false,
     };
-    let summary = run_items(&state(), &items, &options, rx, |_| {}).await;
+    let summary = run_items(&state(), &items, &[], &options, rx, |_| {}).await;
     assert_eq!((summary.passed, summary.failed), (1, 1));
 
     let (tx, rx) = oneshot::channel();
     tx.send(()).unwrap();
     let options = RunnerOptions {
+        data_path: None,
         delay_ms: 50,
         stop_on_failure: false,
     };
-    let cancelled = run_items(&state(), &items, &options, rx, |_| {}).await;
+    let cancelled = run_items(&state(), &items, &[], &options, rx, |_| {}).await;
     assert!(cancelled.cancelled);
+}
+
+#[tokio::test]
+async fn runs_once_per_data_row_with_row_values() {
+    let server = MockServer::start().await;
+    Mock::given(path("/users/7"))
+        .respond_with(ResponseTemplate::new(200))
+        .mount(&server)
+        .await;
+    Mock::given(path("/users/8"))
+        .respond_with(ResponseTemplate::new(404))
+        .mount(&server)
+        .await;
+    let items = vec![item(
+        "User",
+        format!("{}/users/{{{{id}}}}", server.uri()),
+        "",
+    )];
+    let data = vec![
+        vec![("id".to_string(), "7".to_string())],
+        vec![("id".to_string(), "8".to_string())],
+    ];
+    let options = RunnerOptions {
+        delay_ms: 0,
+        stop_on_failure: false,
+        data_path: None,
+    };
+    let (_tx, rx) = oneshot::channel();
+    let seen = Mutex::new(Vec::new());
+    let summary = run_items(&state(), &items, &data, &options, rx, |r| {
+        seen.lock()
+            .unwrap()
+            .push((r.iteration, r.index, r.total, r.status))
+    })
+    .await;
+    assert_eq!((summary.iterations, summary.total), (2, 2));
+    assert_eq!(
+        seen.into_inner().unwrap(),
+        [(1, 1, 2, Some(200)), (2, 2, 2, Some(404))]
+    );
 }

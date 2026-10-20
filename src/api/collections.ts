@@ -4,6 +4,7 @@ import type { CollectionTree } from "@/bindings/CollectionTree";
 import type { Folder } from "@/bindings/Folder";
 import type { MoveTarget } from "@/bindings/MoveTarget";
 import type { NodeKind } from "@/bindings/NodeKind";
+import type { Scripts } from "@/bindings/Scripts";
 import type { RequestSpec } from "@/bindings/RequestSpec";
 import type { SavedRequest } from "@/bindings/SavedRequest";
 import { invoke } from "./invoke";
@@ -28,3 +29,12 @@ export const moveNode = (kind: NodeKind, id: string, target: MoveTarget) =>
 
 export const setNodeAuth = (kind: NodeKind, id: string, auth: Auth) =>
   invoke<void>("set_node_auth", { kind, id, auth });
+
+export const setNodeSettings = (kind: NodeKind, id: string, scripts: Scripts, docs: string) =>
+  invoke<void>("set_node_settings", { kind, id, scripts, docs });
+
+export const getCollectionVariables = (id: string) =>
+  invoke<[string, string][]>("get_collection_variables", { id });
+
+export const setCollectionVariables = (id: string, variables: [string, string][]) =>
+  invoke<void>("set_collection_variables", { id, variables });

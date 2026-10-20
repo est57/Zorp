@@ -1,5 +1,7 @@
 mod context;
 mod digest;
+mod script_host;
+mod script_io;
 mod scripts;
 
 use uuid::Uuid;
@@ -18,7 +20,18 @@ pub use context::RequestContext;
 /// Returns the request as actually sent (after script changes) alongside the result.
 pub async fn execute(
     state: &AppState,
+    spec: RequestSpec,
+    request_id: Uuid,
+    progress: impl Fn(ProgressPhase, u64),
+) -> (RequestSpec, AppResult<ResponseData>) {
+    execute_with_data(state, spec, Vec::new(), request_id, progress).await
+}
+
+/// Like [`execute`], with runner iteration values layered over the environment.
+pub async fn execute_with_data(
+    state: &AppState,
     mut spec: RequestSpec,
+    data: Vec<(String, String)>,
     request_id: Uuid,
     progress: impl Fn(ProgressPhase, u64),
 ) -> (RequestSpec, AppResult<ResponseData>) {
@@ -26,6 +39,7 @@ pub async fn execute(
         Ok(ctx) => ctx,
         Err(e) => return (spec, Err(e)),
     };
+    ctx.data = data;
     let mut report = ScriptReport::default();
     let locals = match scripts::pre_request(state, &mut ctx, &mut spec, &mut report).await {
         Ok(locals) => locals,
@@ -105,5 +119,7 @@ async fn send(
 
 #[cfg(test)]
 mod auth_tests;
+#[cfg(test)]
+mod chain_tests;
 #[cfg(test)]
 mod tests;

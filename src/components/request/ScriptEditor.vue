@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import type { RequestSpec } from "@/bindings/RequestSpec";
+import type { Scripts } from "@/bindings/Scripts";
 import CodeEditor from "@/components/ui/CodeEditor.vue";
 import SegmentedTabs from "@/components/ui/SegmentedTabs.vue";
 import { PRE_REQUEST_SNIPPETS, TEST_SNIPPETS } from "./scriptSnippets";
 
-const props = defineProps<{ spec: RequestSpec }>();
+const props = defineProps<{ scripts: Scripts }>();
 
 const phase = ref<"preRequest" | "test">(
-  props.spec.scripts.test && !props.spec.scripts.preRequest ? "test" : "preRequest",
+  props.scripts.test && !props.scripts.preRequest ? "test" : "preRequest",
 );
 const phases = [
   { id: "preRequest", label: "Sebelum request" },
@@ -16,8 +16,8 @@ const phases = [
 ];
 
 function insert(code: string) {
-  const current = props.spec.scripts[phase.value];
-  props.spec.scripts[phase.value] = current.trim()
+  const current = props.scripts[phase.value];
+  props.scripts[phase.value] = current.trim()
     ? `${current.replace(/\s+$/, "")}\n\n${code}\n`
     : `${code}\n`;
 }
@@ -26,11 +26,12 @@ function insert(code: string) {
 <template>
   <div class="flex h-full min-h-0 flex-col">
     <SegmentedTabs v-model="phase" :items="phases" label="Jenis script" />
+    <slot />
     <div class="flex min-h-0 flex-1 max-md:flex-col">
       <div class="min-h-0 min-w-0 flex-1">
         <CodeEditor
           :key="phase"
-          v-model="spec.scripts[phase]"
+          v-model="scripts[phase]"
           language="javascript"
           :label="phase === 'preRequest' ? 'Script sebelum request' : 'Script tes'"
         />
@@ -49,7 +50,9 @@ function insert(code: string) {
           {{ snippet.label }}
         </button>
         <p class="px-1.5 pt-2 leading-[18px] text-subtle">
-          Script berjalan terisolasi tanpa akses file atau jaringan, dengan batas waktu 5 detik.
+          Script berjalan terisolasi tanpa akses file. Request jaringan hanya lewat pm.sendRequest
+          (maksimal 20 per script) dan tercatat di Konsol. Batas waktu 5 detik, di luar waktu tunggu
+          jaringan.
         </p>
       </aside>
     </div>

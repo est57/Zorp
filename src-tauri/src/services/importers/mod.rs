@@ -7,11 +7,15 @@ mod openapi_fixtures;
 mod openapi_tests;
 
 use crate::models::request::{Auth, RequestSpec};
+use crate::models::script::Scripts;
 
+// Import trees are built once and saved right away, so variant size does not matter here.
+#[allow(clippy::large_enum_variant)]
 pub enum ImportedNode {
     Folder {
         name: String,
         auth: Option<Auth>,
+        scripts: Scripts,
         children: Vec<ImportedNode>,
     },
     Request(Box<RequestSpec>),
@@ -20,6 +24,7 @@ pub enum ImportedNode {
 pub struct ImportedCollection {
     pub name: String,
     pub auth: Option<Auth>,
+    pub scripts: Scripts,
     pub variables: Vec<(String, String)>,
     pub items: Vec<ImportedNode>,
     pub warnings: Vec<String>,

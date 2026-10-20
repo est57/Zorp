@@ -137,6 +137,7 @@ pub fn convert(root: &Value, options: &OpenApiOptions) -> AppResult<ImportedColl
             Some(ImportedNode::Folder {
                 name: clean_name(&name, "Folder"),
                 auth: None,
+                scripts: Default::default(),
                 children,
             })
         })
@@ -157,6 +158,7 @@ pub fn convert(root: &Value, options: &OpenApiOptions) -> AppResult<ImportedColl
             .push("Base URL kosong; isi variabel baseUrl di koleksi".into());
     }
     Ok(ImportedCollection {
+        scripts: Default::default(),
         name: clean_name(&summary::info(root, "title"), "API"),
         auth,
         variables,

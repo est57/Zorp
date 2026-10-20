@@ -13,6 +13,7 @@ use uuid::Uuid;
 use crate::models::collection::{Collection, Folder, SavedRequest};
 use crate::models::realtime::RequestMode;
 use crate::models::request::RequestSpec;
+use crate::models::script::Scripts;
 
 const SCHEMA: &str = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json";
 
@@ -31,14 +32,14 @@ pub struct Exported {
     pub skipped: Vec<String>,
 }
 
-fn script_events(spec: &RequestSpec) -> Value {
+fn script_events(scripts: &Scripts) -> Value {
     let event = |listen: &str, source: &str| json!({ "listen": listen, "script": { "type": "text/javascript", "exec": source.lines().collect::<Vec<_>>() } });
     let mut events = Vec::new();
-    if !spec.scripts.pre_request.trim().is_empty() {
-        events.push(event("prerequest", &spec.scripts.pre_request));
+    if !scripts.pre_request.trim().is_empty() {
+        events.push(event("prerequest", &scripts.pre_request));
     }
-    if !spec.scripts.test.trim().is_empty() {
-        events.push(event("test", &spec.scripts.test));
+    if !scripts.test.trim().is_empty() {
+        events.push(event("test", &scripts.test));
     }
     Value::Array(events)
 }
@@ -56,11 +57,15 @@ fn request_item(spec: &RequestSpec) -> Value {
         request["auth"] = auth;
     }
     let mut item = json!({ "name": spec.name, "request": request });
-    let events = script_events(spec);
+    add_events(&mut item, &spec.scripts);
+    item
+}
+
+fn add_events(item: &mut Value, scripts: &Scripts) {
+    let events = script_events(scripts);
     if events.as_array().is_some_and(|e| !e.is_empty()) {
         item["event"] = events;
     }
-    item
 }
 
 fn items(data: &CollectionData<'_>, parent: Option<Uuid>, out: &mut Exported) -> Vec<Value> {
@@ -83,6 +88,7 @@ fn items(data: &CollectionData<'_>, parent: Option<Uuid>, out: &mut Exported) ->
         if let Some(auth) = folder.auth.as_ref().and_then(fields::auth) {
             item["auth"] = auth;
         }
+        add_events(&mut item, &folder.scripts);
         list.push(item);
     }
     for saved in requests {
@@ -111,6 +117,7 @@ pub fn export(data: &CollectionData<'_>) -> Exported {
     if let Some(auth) = data.collection.auth.as_ref().and_then(fields::auth) {
         root["auth"] = auth;
     }
+    add_events(&mut root, &data.collection.scripts);
     if !data.variables.is_empty() {
         root["variable"] = Value::Array(
             data.variables

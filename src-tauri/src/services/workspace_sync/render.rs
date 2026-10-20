@@ -47,6 +47,8 @@ pub fn render(snapshot: &Snapshot) -> AppResult<FileMap> {
             name: c.name.clone(),
             order: c.sort_order,
             auth: c.auth.clone(),
+            scripts: c.scripts.clone(),
+            docs: c.docs.clone(),
             variables: entry
                 .variables
                 .iter()
@@ -109,6 +111,8 @@ fn render_level(
             name: folder.name.clone(),
             order: folder.sort_order,
             auth: folder.auth.clone(),
+            scripts: folder.scripts.clone(),
+            docs: folder.docs.clone(),
         };
         files.insert(format!("{sub}/{FOLDER_FILE}"), yaml(&file)?);
         render_level(snapshot, collection, Some(folder.id), &sub, files)?;

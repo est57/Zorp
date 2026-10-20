@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use rusqlite::{Connection, params};
 use uuid::Uuid;
 
+use super::node_settings::scripts_json;
 use super::{collections, environments, examples, folders, now_ms, requests, workspace};
 use crate::error::{AppError, AppResult};
 use crate::models::environment::Variable;
@@ -69,15 +70,18 @@ pub fn replace(
     for entry in &snapshot.collections {
         let c = &entry.collection;
         tx.execute(
-            "INSERT INTO collections (id, workspace_id, name, auth_json, variables_json, sort_order)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO collections
+               (id, workspace_id, name, auth_json, variables_json, sort_order, scripts_json, docs)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
             params![
                 c.id.to_string(),
                 ws,
                 c.name,
                 c.auth.as_ref().map(serde_json::to_string).transpose()?,
                 serde_json::to_string(&entry.variables)?,
-                c.sort_order
+                c.sort_order,
+                scripts_json(&c.scripts)?,
+                c.docs
             ],
         )
         .map_err(conflict)?;
@@ -92,15 +96,18 @@ pub fn replace(
             .partition(|f| f.parent_id.is_none_or(|p| inserted.contains(&p)));
         for f in ready {
             tx.execute(
-                "INSERT INTO folders (id, collection_id, parent_id, name, auth_json, sort_order)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                "INSERT INTO folders
+                   (id, collection_id, parent_id, name, auth_json, sort_order, scripts_json, docs)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
                 params![
                     f.id.to_string(),
                     f.collection_id.to_string(),
                     f.parent_id.map(|p| p.to_string()),
                     f.name,
                     f.auth.as_ref().map(serde_json::to_string).transpose()?,
-                    f.sort_order
+                    f.sort_order,
+                    scripts_json(&f.scripts)?,
+                    f.docs
                 ],
             )
             .map_err(conflict)?;

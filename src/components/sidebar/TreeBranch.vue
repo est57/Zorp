@@ -33,7 +33,11 @@ const folderMenu = (id: string, name: string): MenuItem[] => [
     icon: "send",
     run: () => (dialogs.runnerTarget = { collectionId: props.collectionId, folderId: id, name }),
   },
-  { label: "Atur auth", icon: "lock", run: () => (dialogs.authTarget = { kind: "folder", id }) },
+  {
+    label: "Pengaturan",
+    icon: "settings",
+    run: () => (dialogs.nodeTarget = { kind: "folder", id }),
+  },
   { label: "Ganti nama", icon: "pencil", run: () => actions.rename("folder", id, name) },
   { label: "Hapus", icon: "trash", danger: true, run: () => actions.remove("folder", id, name) },
 ];
@@ -81,6 +85,7 @@ const drag = (kind: "folder" | "request", id: string) =>
         :expanded="collections.expanded.has(folder.id)"
         :menu="folderMenu(folder.id, folder.name)"
         :warning="warningFor(folder.id)"
+        :badge="folder.scripts.preRequest.trim() || folder.scripts.test.trim() ? 'JS' : undefined"
         draggable
         zones="all"
         @activate="collections.toggle(folder.id)"

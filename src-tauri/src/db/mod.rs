@@ -5,6 +5,7 @@ pub mod examples;
 pub mod folders;
 pub mod history;
 pub mod import;
+pub mod node_settings;
 pub mod requests;
 pub mod run_order;
 pub mod settings;
@@ -29,6 +30,7 @@ const MIGRATIONS_SLICE: &[M<'_>] = &[
     M::up(include_str!("../../migrations/0003_settings.sql")),
     M::up(include_str!("../../migrations/0004_workspaces.sql")),
     M::up(include_str!("../../migrations/0005_examples.sql")),
+    M::up(include_str!("../../migrations/0006_node_settings.sql")),
 ];
 const MIGRATIONS: Migrations<'_> = Migrations::from_slice(MIGRATIONS_SLICE);
 const MAX_NAME_LEN: usize = 200;
